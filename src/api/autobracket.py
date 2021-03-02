@@ -23,12 +23,13 @@ from sklearn.preprocessing import MinMaxScaler
 # import custom local stuff
 from instance.config import FANTASY_DATA_KEY_FREE
 from src.db.atlas import get_odm
-from src.api.users import oauth2_scheme
+from src.api.security import get_api_key
 
 
 ab_api = APIRouter(
     prefix="/autobracket",
     tags=["autobracket"],
+    dependencies=[Depends(get_api_key)],
 )
 
 
@@ -140,7 +141,7 @@ class SimulationDist(Model):
     median_margin_bottom: int
 
 
-@ab_api.get("/stats/{season}/all", dependencies=[Depends(oauth2_scheme)])
+@ab_api.get("/stats/{season}/all")
 async def get_season_players(
     season: FantasyDataSeason,
     client: AsyncIOMotorClient = Depends(get_odm),
@@ -161,7 +162,7 @@ async def get_season_players(
         raise HTTPException(status_code=404, detail="No data found!")
 
 
-@ab_api.get("/stats/{season}/{team}", dependencies=[Depends(oauth2_scheme)])
+@ab_api.get("/stats/{season}/{team}")
 async def get_season_team_players(
     season: FantasyDataSeason,
     team: str,
@@ -276,10 +277,7 @@ async def k_means_players(
     }
 
 
-@ab_api.get(
-    "/bracket/{season}/{flavor}",
-    dependencies=[Depends(oauth2_scheme)],
-)
+@ab_api.get("/bracket/{season}/{flavor}")
 async def single_sim_bracket(
     season: FantasyDataSeason,
     flavor: BracketFlavor,
@@ -457,10 +455,7 @@ async def single_sim_bracket(
     return bracket_json
 
 
-@ab_api.get(
-    "/game/{season}/{away_team}/{home_team}/{flavor}",
-    dependencies=[Depends(oauth2_scheme)],
-)
+@ab_api.get("/game/{season}/{away_team}/{home_team}/{flavor}")
 async def single_sim_game(
     season: FantasyDataSeason,
     away_team: str,
@@ -510,10 +505,7 @@ async def single_sim_game(
     return game_data
 
 
-@ab_api.get(
-    "/sim/margins/{season}/{away_team}/{home_team}",
-    dependencies=[Depends(oauth2_scheme)],
-)
+@ab_api.get("/sim/margins/{season}/{away_team}/{home_team}")
 async def matchup_sim_margin(
     season: FantasyDataSeason,
     away_team: str,
@@ -1663,10 +1655,7 @@ def rebound_distribution(offensive_teams, defensive_teams, on_floor_df):
     )
 
 
-@ab_api.get(
-    "/FantasyDataRefresh/PlayerGameDay/{game_year}/{game_month}/{game_day}",
-    dependencies=[Depends(oauth2_scheme)],
-)
+@ab_api.get("/FantasyDataRefresh/PlayerGameDay/{game_year}/{game_month}/{game_day}")
 async def refresh_fd_player_games(
     game_year: int,
     game_month: int,
@@ -1691,9 +1680,7 @@ async def refresh_fd_player_games(
     return {"message": "Mongo refresh complete!"}
 
 
-@ab_api.get(
-    "/FantasyDataRefresh/PlayerSeason/{season}", dependencies=[Depends(oauth2_scheme)]
-)
+@ab_api.get("/FantasyDataRefresh/PlayerSeason/{season}")
 async def refresh_fd_player_season(
     season: FantasyDataSeason,
     client: AsyncIOMotorClient = Depends(get_odm),
@@ -1756,10 +1743,7 @@ async def refresh_fd_player_season(
     return {"message": "Mongo refresh complete!"}
 
 
-@ab_api.get(
-    "/FantasyDataRefresh/PlayerSeasonTeam/{season}/{team}",
-    dependencies=[Depends(oauth2_scheme)],
-)
+@ab_api.get("/FantasyDataRefresh/PlayerSeasonTeam/{season}/{team}")
 async def refresh_fd_player_season_team(
     season: FantasyDataSeason,
     team: str,
@@ -1773,10 +1757,7 @@ async def refresh_fd_player_season_team(
     return {"message": "Mongo refresh complete!"}
 
 
-@ab_api.get(
-    "/FantasyDataRefresh/Teams/{season}",
-    dependencies=[Depends(oauth2_scheme)],
-)
+@ab_api.get("/FantasyDataRefresh/Teams/{season}")
 async def refresh_fd_teams(
     season: FantasyDataSeason,
     client: AsyncIOMotorClient = Depends(get_odm),

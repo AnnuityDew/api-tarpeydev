@@ -14,12 +14,13 @@ from odmantic import AIOEngine, Field, Model, ObjectId
 
 # import custom local stuff
 from src.db.atlas import get_odm
-from src.api.users import oauth2_scheme, UserOut
+from src.api.security import get_api_key
 
 
 ml_api = APIRouter(
     prefix="/mildredleague",
     tags=["mildredleague"],
+    dependencies=[Depends(get_api_key)],
 )
 
 
@@ -340,7 +341,6 @@ class MLTable(pandas.DataFrame):
 async def add_teams(
     doc_list: List[MLTeam],
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     result = await engine.save_all(doc_list)
@@ -370,7 +370,6 @@ async def edit_team(
     oid: ObjectId,
     patch: MLTeamPatch,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     team = await engine.find_one(MLTeam, MLTeam.id == oid)
@@ -393,7 +392,6 @@ async def edit_team(
 async def delete_team(
     oid: ObjectId,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     team = await engine.find_one(MLTeam, MLTeam.id == oid)
@@ -439,7 +437,6 @@ async def get_season_teams(
 async def add_games(
     doc_list: List[MLGame],
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     result = await engine.save_all(doc_list)
@@ -469,7 +466,6 @@ async def edit_game(
     oid: ObjectId,
     patch: MLGamePatch,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     game = await engine.find_one(MLGame, MLGame.id == oid)
@@ -492,7 +488,6 @@ async def edit_game(
 async def delete_game(
     oid: ObjectId,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     game = await engine.find_one(MLGame, MLGame.id == oid)
@@ -588,7 +583,6 @@ async def get_season_games_subset(
 async def add_notes(
     doc_list: List[MLNote],
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     result = await engine.save_all(doc_list)
@@ -615,7 +609,6 @@ async def edit_note(
     oid: ObjectId,
     patch: MLNotePatch,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     note = await engine.find_one(MLNote, MLNote.id == oid)
@@ -636,7 +629,6 @@ async def edit_note(
 async def delete_note(
     oid: ObjectId,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
     note = await engine.find_one(MLNote, MLNote.id == oid)

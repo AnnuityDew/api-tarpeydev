@@ -9,12 +9,13 @@ from odmantic import AIOEngine, Field, Model, ObjectId
 
 # import custom local stuff
 from src.db.atlas import get_odm
-from src.api.users import oauth2_scheme
+from src.api.security import get_api_key
 
 
 index_api = APIRouter(
     prefix="",
     tags=["meta"],
+    dependencies=[Depends(get_api_key)],
 )
 
 
@@ -54,7 +55,7 @@ async def get_all_quotes(
         raise HTTPException(status_code=404, detail="No data found!")
 
 
-@index_api.post('/quote', dependencies=[Depends(oauth2_scheme)])
+@index_api.post('/quote')
 async def add_quotes(
     doc_list: List[Quote],
     client: AsyncIOMotorClient = Depends(get_odm),
@@ -79,7 +80,7 @@ async def get_quote(
         raise HTTPException(status_code=404, detail="No data found!")
 
 
-@index_api.patch('/quote/{oid}', dependencies=[Depends(oauth2_scheme)])
+@index_api.patch('/quote/{oid}')
 async def edit_quote(
     oid: ObjectId,
     patch: QuotePatch,
@@ -100,7 +101,7 @@ async def edit_quote(
     }
 
 
-@index_api.delete('/quote/{oid}', dependencies=[Depends(oauth2_scheme)])
+@index_api.delete('/quote/{oid}')
 async def delete_quote(
     oid: ObjectId,
     client: AsyncIOMotorClient = Depends(get_odm),

@@ -15,12 +15,13 @@ from odmantic import AIOEngine, Field, Model, ObjectId, query
 
 # import custom local stuff
 from src.db.atlas import get_odm
-from src.api.users import UserOut, oauth2_scheme
+from src.api.security import get_api_key
 
 
 hysx_api = APIRouter(
     prefix="/haveyouseenx",
     tags=["haveyouseenx"],
+    dependencies=[Depends(get_api_key)],
 )
 
 
@@ -94,7 +95,6 @@ async def get_all_games(client: AsyncIOMotorClient = Depends(get_odm)):
 async def add_games(
     doc_list: List[BacklogGame],
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="backlogs")
     result = await engine.save_all(doc_list)
@@ -107,7 +107,6 @@ async def add_games(
 async def get_game(
     oid: ObjectId,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="backlogs")
     game = await engine.find_one(BacklogGame, BacklogGame.id == oid)
@@ -122,7 +121,6 @@ async def edit_game(
     oid: ObjectId,
     patch: BacklogGamePatch,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="backlogs")
     game = await engine.find_one(BacklogGamePatch, BacklogGamePatch.id == oid)
@@ -143,7 +141,6 @@ async def edit_game(
 async def delete_game(
     oid: ObjectId,
     client: AsyncIOMotorClient = Depends(get_odm),
-    user: UserOut = Depends(oauth2_scheme),
 ):
     engine = AIOEngine(motor_client=client, database="backlogs")
     game = await engine.find_one(BacklogGame, BacklogGame.id == oid)

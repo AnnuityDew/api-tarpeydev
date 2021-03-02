@@ -2,12 +2,10 @@
 import multiprocessing
 
 # import third party packages
-from fastapi import FastAPI, Request
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 # import custom local stuff
 from instance.config import GCP_FILE
@@ -15,8 +13,8 @@ from src.api.index import index_api
 from src.api.autobracket import ab_api
 from src.api.haveyouseenx import hysx_api
 from src.api.mildredleague import ml_api
-from src.api.users import users_api
 from src.db.startup import motor_startup, motor_shutdown
+from src.api.security import get_api_key
 
 # GCP debugger
 try:
@@ -44,8 +42,38 @@ def create_fastapi_app():
             {"url": "https://dev-api.tarpey.dev/", "description": "Staging environment."},
             {"url": "https://api.tarpey.dev/", "description": "Production environment"},
         ],
+        redoc_url=None,
         default_response_class=ORJSONResponse,
     )
+
+    # templates for the root page
+    templates = Jinja2Templates(directory='templates')
+
+    # root path
+    @api_app.get('/')
+    async def api_portal(request: Request):
+        return templates.TemplateResponse(
+            'api-portal.html',
+            context={
+                'request': request,
+            }
+        )
+
+    @api_app.get('/all-paths', dependencies=[Depends(get_api_key)])
+    async def all_paths():
+        """View all active paths. Thanks JPG!
+
+        https://stackoverflow.com/questions/63206332/how-can-i-list-all-defined-url-paths-in-fastapi
+        
+        """
+        url_list = [
+            {'path': route.path, 'name': route.name}
+            for route in app.routes
+        ]
+        return url_list
+
+    # static folder config
+    api_app.mount("/static", app=StaticFiles(directory='static'), name="static")
 
     # startup and shutdown connection to DB
     # see https://motor.readthedocs.io/en/stable/tutorial-asyncio.html
@@ -59,7 +87,6 @@ def create_fastapi_app():
     api_app.include_router(ab_api)
     api_app.include_router(hysx_api)
     api_app.include_router(ml_api)
-    api_app.include_router(users_api)
 
     return api_app
 

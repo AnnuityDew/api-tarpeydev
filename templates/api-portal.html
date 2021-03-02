@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en-US">
+
+<head>
+  <title>tarpey.dev API</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="author" content="Mike Tarpey">
+  <meta name="msapplication-TileColor" content="#2d89ef">
+  <meta name="theme-color" content="#ffffff">
+  <link rel="apple-touch-icon" sizes="180x180"
+    href="{{ url_for('static', path='/index/favicon/apple-touch-icon.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32"
+    href="{{ url_for('static', path='/index/favicon/favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16"
+    href="{{ url_for('static', path='/index/favicon/favicon-16x16.png') }}">
+  <link rel="manifest" href="{{ url_for('static', path='/index/favicon/site.webmanifest') }}">
+  <link rel="mask-icon" href="{{ url_for('static', path='/index/favicon/safari-pinned-tab.svg') }}" color="#5bbad5">
+  <link rel="shortcut icon" href="{{ url_for('static', path='/index/favicon/favicon.ico') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='/index/css/style.css') }}">
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.28/dist/themes/base.css">
+  <script type="module"
+    src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.28/dist/all.shoelace.js"></script>
+</head>
+
+<body>
+  <main>
+    <h1 class="title-header">tarpey.dev API</h1>
+    <p>
+      Hey there! You're entering the API section of tarpey.dev (which powers the rest of my sites).
+    </p>
+
+    <p>If you want to take a look around and see how the site works, click the blue button. Otherwise, take the red
+      button back
+      to the main page.</p>
+
+    <div class="button-div">
+      <a href="{{ url_for('swagger_ui_html') }}">
+        <sl-button class="sl-blue-button" size="large" style="width: 100%">Show me the documentation!</sl-button>
+      </a>
+    </div>
+    <div class="button-div">
+      <a href="https://tarpey.dev">
+        <sl-button class="sl-red-button" size="large" style="width: 100%">Get me out of here...</sl-button>
+      </a>
+    </div>
+  </main>
+</body>
+
+</html>
