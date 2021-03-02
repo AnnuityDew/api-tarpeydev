@@ -6,6 +6,7 @@ from fastapi import FastAPI, Request, Depends
 from fastapi.responses import ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.middleware.cors import CORSMiddleware
 
 # import custom local stuff
 from instance.config import GCP_FILE
@@ -38,12 +39,20 @@ def create_fastapi_app():
         title="tarpey.dev API",
         description="API for Mike Tarpey's app sandbox.",
         servers=[
-            {"url": "http://127.0.0.1:8000/", "description": "Testing environment."},
-            {"url": "https://dev-api.tarpey.dev/", "description": "Staging environment."},
             {"url": "https://api.tarpey.dev/", "description": "Production environment"},
+            {"url": "https://dev-api.tarpey.dev/", "description": "Staging environment."},
+            {"url": "http://127.0.0.1:8000/", "description": "Testing environment."},
         ],
         redoc_url=None,
         default_response_class=ORJSONResponse,
+    )
+
+    # CORS middleware to enable preflight OPTIONS requests
+    api_app.add_middleware(
+        CORSMiddleware,
+        allow_origins=['*'],
+        allow_methods=["*"],
+        allow_headers=["*"],
     )
 
     # templates for the root page
