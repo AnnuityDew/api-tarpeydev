@@ -15,13 +15,13 @@ from odmantic import AIOEngine, Field, Model, ObjectId, query
 
 # import custom local stuff
 from src.db.atlas import get_odm
-from src.api.security import get_api_key
+from src.api.security import validate_jwt
 
 
 hysx_api = APIRouter(
     prefix="/haveyouseenx",
     tags=["haveyouseenx"],
-    dependencies=[Depends(get_api_key)],
+    dependencies=[Depends(validate_jwt)],
 )
 
 

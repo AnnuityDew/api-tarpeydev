@@ -14,13 +14,13 @@ from odmantic import AIOEngine, Field, Model, ObjectId
 
 # import custom local stuff
 from src.db.atlas import get_odm
-from src.api.security import get_api_key
+from src.api.security import validate_jwt
 
 
 ml_api = APIRouter(
     prefix="/mildredleague",
     tags=["mildredleague"],
-    dependencies=[Depends(get_api_key)],
+    dependencies=[Depends(validate_jwt)],
 )
 
 

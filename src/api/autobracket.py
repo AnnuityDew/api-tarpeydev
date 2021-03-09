@@ -23,13 +23,13 @@ from sklearn.preprocessing import MinMaxScaler
 # import custom local stuff
 from instance.config import FANTASY_DATA_KEY_FREE
 from src.db.atlas import get_odm
-from src.api.security import get_api_key
+from src.api.security import validate_jwt
 
 
 ab_api = APIRouter(
     prefix="/autobracket",
     tags=["autobracket"],
-    dependencies=[Depends(get_api_key)],
+    dependencies=[Depends(validate_jwt)],
 )
 
 
