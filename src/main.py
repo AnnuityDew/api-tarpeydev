@@ -17,17 +17,6 @@ from src.api.mildredleague import ml_api
 from src.api.security import security_api, validate_jwt
 from src.db.startup import motor_startup, motor_shutdown
 
-# GCP debugger
-try:
-    import googleclouddebugger
-
-    googleclouddebugger.enable(
-        breakpoint_enable_canary=False,
-        service_account_json_file=GCP_FILE,
-    )
-except ImportError:
-    pass
-
 
 def multiproc_context():
     # possible multiprocessing solution from https://github.com/tiangolo/fastapi/issues/1487
@@ -39,14 +28,14 @@ def create_fastapi_app():
     api_app = FastAPI(
         title="tarpey.dev API",
         description="API for Mike Tarpey's app sandbox.",
-        servers=[
-            {"url": "https://api.tarpey.dev/", "description": "Production environment"},
-            {
-                "url": "https://dev-api.tarpey.dev/",
-                "description": "Staging environment.",
-            },
-            {"url": "http://127.0.0.1:8000/", "description": "Testing environment."},
-        ],
+        # servers=[
+        #     {"url": "https://api.tarpey.dev/", "description": "Production environment"},
+        #     {
+        #         "url": "https://dev-api.tarpey.dev/",
+        #         "description": "Staging environment.",
+        #     },
+        #     {"url": "http://127.0.0.1:8000/", "description": "Testing environment."},
+        # ],
         redoc_url=None,
         default_response_class=ORJSONResponse,
     )
@@ -58,6 +47,7 @@ def create_fastapi_app():
             "http://localhost:3000",
             "https://dev.tarpey.dev",
             "https://tarpey.dev",
+            "https://next-tarpeydev-git-dev-annuitydew.vercel.app",
             "https://next-tarpeydev.vercel.app",
         ],
         allow_methods=["*"],
