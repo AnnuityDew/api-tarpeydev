@@ -10,7 +10,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import pandas
 import plotly
 import plotly.express as px
-from odmantic import AIOEngine, Field, Model, ObjectId
+from odmantic import AIOEngine, Model, ObjectId
 
 # import custom local stuff
 from src.db.atlas import get_odm

@@ -18,10 +18,9 @@ from odmantic import AIOEngine, Field, Model, query
 import requests
 from scipy import stats
 from sklearn.cluster import KMeans
-from sklearn.preprocessing import MinMaxScaler
 
 # import custom local stuff
-from instance.config import FANTASY_DATA_KEY_FREE
+from instance.config import FANTASY_DATA_KEY_CBB, FANTASY_DATA_KEY_FREE
 from src.db.atlas import get_odm
 from src.api.security import validate_jwt
 
@@ -46,6 +45,7 @@ class BracketFlavor(str, Enum):
 
 
 class CBBTeam(Model):
+    SeasonTeamID: str = Field(primary_field=True)
     Key: str
     School: str
     Name: str
@@ -1688,7 +1688,7 @@ async def refresh_fd_player_season(
     r = requests.get(
         f"https://api.sportsdata.io/api/cbb/fantasy/json/PlayerSeasonStats/{season}"
         + "?key="
-        + FANTASY_DATA_KEY_FREE
+        + FANTASY_DATA_KEY_CBB
     )
 
     engine = AIOEngine(motor_client=client, database="autobracket")
@@ -1781,7 +1781,7 @@ async def refresh_fd_teams(
     r = requests.get(
         "https://api.sportsdata.io/api/cbb/fantasy/json/Teams"
         + "?key="
-        + FANTASY_DATA_KEY_FREE
+        + FANTASY_DATA_KEY_CBB
     )
 
     # read teams table, set index
@@ -1808,8 +1808,10 @@ async def refresh_fd_teams(
         .convert_dtypes()
     )
 
-    # season should be string (ex: 2020POST)
+    # season should be string (ex: 2020POST) so we can concat with TeamID
     teams_df["Season"] = teams_df["Season"].map(str).astype("string")
+    teams_df["GlobalTeamID"] = teams_df["GlobalTeamID"].map(str).astype("string")
+    teams_df["SeasonTeamID"] = teams_df["GlobalTeamID"] + teams_df["Season"]
 
     # back to json for writing to DB. reset index so TeamID makes it in
     engine = AIOEngine(motor_client=client, database="autobracket")

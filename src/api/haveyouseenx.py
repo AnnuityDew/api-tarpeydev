@@ -11,7 +11,7 @@ import numpy
 import pandas
 import plotly
 import plotly.express as px
-from odmantic import AIOEngine, Field, Model, ObjectId, query
+from odmantic import AIOEngine, Model, ObjectId, query
 
 # import custom local stuff
 from src.db.atlas import get_odm

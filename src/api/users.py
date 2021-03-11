@@ -11,8 +11,6 @@ from fastapi_login import LoginManager
 from motor.motor_asyncio import AsyncIOMotorClient
 from passlib.context import CryptContext
 from pydantic import BaseModel, Field, validator
-import pymongo
-from pymongo import MongoClient
 
 # import custom local stuff
 from src.db.atlas import get_odm
@@ -137,7 +135,8 @@ async def create_user(
             "_id": form_data.username,
             "hashed_password": get_password_hash(form_data.password)
         })
-    except pymongo.errors.DuplicateKeyError:
+    # need to put the specific exception here
+    except:
         raise HTTPException(
             status_code=400,
             detail=f"{form_data.username} is already registered!"

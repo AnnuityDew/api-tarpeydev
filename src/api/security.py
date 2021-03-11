@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import Depends, APIRouter, HTTPException, Request
 from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
-from fastapi.security import OAuth2PasswordBearer, OAuth2
+from fastapi.security import OAuth2
 from fastapi.security.utils import get_authorization_scheme_param
 import httpx
 from okta_jwt.jwt import validate_token as validate_locally

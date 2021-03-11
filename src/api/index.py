@@ -5,7 +5,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
 from motor.motor_asyncio import AsyncIOMotorClient
-from odmantic import AIOEngine, Field, Model, ObjectId
+from odmantic import AIOEngine, Model, ObjectId
 
 # import custom local stuff
 from src.db.atlas import get_odm
