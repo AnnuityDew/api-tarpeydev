@@ -7,3 +7,4 @@ worker_class = "uvicorn.workers.UvicornWorker"
 threads = 2
 # don't need a timeout on Cloud Run, it has its own
 timeout = 0
+preload_app = False
