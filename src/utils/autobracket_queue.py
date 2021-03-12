@@ -1,28 +1,39 @@
+"""These files are meant to run locally when necessary, not on the web."""
+
 from itertools import combinations
 import pandas as pd
 import pathlib
 from google.cloud import tasks_v2
-from instance.config import GCP_LOCATION, GCP_MM_QUEUE, GCP_PROJECT, GCP_QUEUE_SA_EMAIL
+from instance.config import (
+    GCP_LOCATION,
+    GCP_MM_QUEUE,
+    GCP_PROJECT,
+    GCP_QUEUE_SA_EMAIL,
+    OKTA_ENCODED_ID_SECRET,
+)
+import requests
+
 
 def simulate_all_matchups():
     """Used to queue up all possible matchups for the March Madness simulator."""
-    
+    year = input("Year: ")
+
     # need all team combos for simulation
     all_matchups_df = pd.read_csv(
-        pathlib.Path(f"src/db/matchup_table_2021.csv"),
+        pathlib.Path(f"src/db/matchup_table_{year}.csv"),
     )
 
     # build list of tournament teams
-    away_teams = list(all_matchups_df.away_team.unique())
-    home_teams = list(all_matchups_df.home_team.unique())
+    away_keys = list(all_matchups_df.away_key.unique())
+    home_keys = list(all_matchups_df.home_key.unique())
     # TBD is a placeholder not a team
-    away_teams.remove('TBD')
-    home_teams.remove('TBD')
-    tournament_teams = (away_teams + home_teams)
+    away_keys.remove("TBD")
+    home_keys.remove("TBD")
+    tournament_teams = away_keys + home_keys
     tournament_matchups = list(combinations(tournament_teams, 2))
     # generate list of request URLs to queue up
     tournament_game_urls = [
-        f"https://tarpey.dev/api/autobracket/sim/2020/{matchup[0]}/{matchup[1]}/100/10"
+        f"https://api.tarpey.dev/autobracket/sim/{year}/{matchup[0]}/{matchup[1]}/200/10"
         for matchup in tournament_matchups
     ]
 
@@ -34,10 +45,26 @@ def simulate_all_matchups():
     queue = GCP_MM_QUEUE
     location = GCP_LOCATION
     service_account_email = GCP_QUEUE_SA_EMAIL
-    payload = None
 
     # Construct the fully qualified queue name.
     parent = client.queue_path(project, location, queue)
+
+    # initial request for JWT
+    r = requests.post(
+        f"https://api.tarpey.dev/security/token",
+        headers={
+            "accept": "application/json",
+            "authorization": "Basic " + OKTA_ENCODED_ID_SECRET,
+        },
+        data={"grant_type": "client_credentials", "scope": "all_data"},
+    )
+
+    # now we can construct task queue headers/body
+    headers = {
+        "accept": "application/json",
+        "Authorization": "Bearer " + r.json()["access_token"],
+    }
+    payload = None
 
     # Construct the requests.
     response_list = []
@@ -49,6 +76,8 @@ def simulate_all_matchups():
                 "oidc_token": {"service_account_email": service_account_email},
             }
         }
+        if headers is not None:
+            new_task["http_request"]["headers"] = headers
         if payload is not None:
             # The API expects a payload of type bytes.
             converted_payload = payload.encode()
@@ -63,5 +92,5 @@ def simulate_all_matchups():
     return response_list
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     simulate_all_matchups()

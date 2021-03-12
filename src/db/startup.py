@@ -12,7 +12,7 @@ async def motor_startup():
     https://github.com/markqiu/fastapi-mongodb-realworld-example-app/
     blob/master/app/db/mongodb_utils.py#L10
     """
-    atlas_object.client = AsyncIOMotorClient(MONGO_CONNECT)
+    atlas_object.client = AsyncIOMotorClient(MONGO_CONNECT, maxPoolSize=15)
 
 
 async def motor_shutdown():

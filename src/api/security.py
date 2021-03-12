@@ -7,7 +7,7 @@ import httpx
 from okta_jwt.jwt import validate_token as validate_locally
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from instance.config import OKTA_AUDIENCE, OKTA_CLIENT_ID, OKTA_CLIENT_SECRET, OKTA_ISSUER
+from instance.config import OKTA_AUDIENCE, OKTA_CLIENT_ID, OKTA_ISSUER
 
 
 security_api = APIRouter(
@@ -96,4 +96,4 @@ def validate_jwt(token: str = Depends(oauth2_scheme)):
         )
         return bool(res)
     except Exception:
-        raise HTTPException(status_code=403)
+        raise HTTPException(status_code=403, detail="Validation failed!")

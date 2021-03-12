@@ -43,13 +43,7 @@ def create_fastapi_app():
     # CORS middleware to enable preflight OPTIONS requests
     api_app.add_middleware(
         CORSMiddleware,
-        allow_origins=[
-            "http://localhost:3000",
-            "https://dev.tarpey.dev",
-            "https://tarpey.dev",
-            "https://next-tarpeydev-git-dev-annuitydew.vercel.app",
-            "https://next-tarpeydev.vercel.app",
-        ],
+        allow_origins=["*"],
         allow_methods=["*"],
         allow_headers=["*"],
     )

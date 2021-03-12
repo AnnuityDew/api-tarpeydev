@@ -1,68 +1,68 @@
-game_id,region,away_seed,away_key,away_team,home_seed,home_key,home_team,advance_to,home_win_chance,sim_reroll,sim_winner
-1,First Four,12a,PVAM,,12b,NCAT,,5,0,TBD,TBD
-2,First Four,12a,STLOU,,12b,NCAR,,7,0,TBD,TBD
-3,First Four,16a,CLVST,,16b,TXST,,13,0,TBD,TBD
-4,First Four,16a,IND,,16b,COL,,15,0,TBD,TBD
-5,West,TBD,TBD,,HinkleOne1,GNZG,,37,0,TBD,TBD
-6,West,HinkleOne9,MARY,,HinkleOne8,LOU,,37,0,TBD,TBD
-7,West,TBD,TBD,,HinkleOne5,TXTECH,,38,0,TBD,TBD
-8,West,HinkleOne13,BELM,,HinkleOne4,TENN,,38,0,TBD,TBD
-9,West,HinkleOne11,STBON,,HinkleOne6,OKST,,39,0,TBD,TBD
-10,West,HinkleOne14,SDKST,,HinkleOne3,IOWA,,39,0,TBD,TBD
-11,West,HinkleOne10,WKENT,,HinkleOne7,WISC,,40,0,TBD,TBD
-12,West,HinkleOne15,EWASH,,HinkleOne2,OKL,,40,0,TBD,TBD
-13,South,TBD,TBD,,HinkleTwo1,BAYL,,41,0,TBD,TBD
-14,South,HinkleTwo9,BOISE,,HinkleTwo8,XAV,,41,0,TBD,TBD
-15,South,TBD,TBD,,HinkleTwo5,VIR,,42,0,TBD,TBD
-16,South,HinkleTwo13,NTX,,HinkleTwo4,MISSR,,42,0,TBD,TBD
-17,South,HinkleTwo11,DRAKE,,HinkleTwo6,PUR,,43,0,TBD,TBD
-18,South,HinkleTwo14,LIBRTY,,HinkleTwo3,FLST,,43,0,TBD,TBD
-19,South,HinkleTwo10,SDST,,HinkleTwo7,CREIGH,,44,0,TBD,TBD
-20,South,HinkleTwo15,SIENA,,HinkleTwo2,ILL,,44,0,TBD,TBD
-21,East,BankersLifeOne16,JMAD,,BankersLifeOne1,OHIOST,,49,0,TBD,TBD
-22,East,BankersLifeOne9,UCLA,,BankersLifeOne8,LSU,,49,0,TBD,TBD
-23,East,BankersLifeOne12,USCB,,BankersLifeOne5,CLMSN,,50,0,TBD,TBD
-24,East,BankersLifeOne13,TOLEDO,,BankersLifeOne4,KAN,,50,0,TBD,TBD
-25,East,BankersLifeOne11,LOYCH,,BankersLifeOne6,ARK,,51,0,TBD,TBD
-26,East,BankersLifeOne14,ABCHR,,BankersLifeOne3,HOU,,51,0,TBD,TBD
-27,East,BankersLifeOne10,ORE,,BankersLifeOne7,RUTGER,,52,0,TBD,TBD
-28,East,BankersLifeOne15,GCAN,,BankersLifeOne2,ALA,,52,0,TBD,TBD
-29,Midwest,BankersLifeTwo16,UMBC,,BankersLifeOne1,MICH,,45,0,TBD,TBD
-30,Midwest,BankersLifeTwo9,UCONN,,BankersLifeOne8,BYU,,45,0,TBD,TBD
-31,Midwest,BankersLifeTwo12,WINTH,,BankersLifeOne5,TX,,46,0,TBD,TBD
-32,Midwest,BankersLifeTwo13,FURMAN,,BankersLifeOne4,VTECH,,46,0,TBD,TBD
-33,Midwest,BankersLifeTwo11,WICHST,,BankersLifeOne6,USC,,47,0,TBD,TBD
-34,Midwest,BankersLifeTwo14,COLG,,BankersLifeOne3,WVIR,,47,0,TBD,TBD
-35,Midwest,BankersLifeTwo10,COLST,,BankersLifeOne7,FL,,48,0,TBD,TBD
-36,Midwest,BankersLifeTwo15,BRYANT,,BankersLifeOne2,VILL,,48,0,TBD,TBD
-37,West,TBD,TBD,,TBD,TBD,,53,0,TBD,TBD
-38,West,TBD,TBD,,TBD,TBD,,53,0,TBD,TBD
-39,West,TBD,TBD,,TBD,TBD,,54,0,TBD,TBD
-40,West,TBD,TBD,,TBD,TBD,,54,0,TBD,TBD
-41,South,TBD,TBD,,TBD,TBD,,55,0,TBD,TBD
-42,South,TBD,TBD,,TBD,TBD,,55,0,TBD,TBD
-43,South,TBD,TBD,,TBD,TBD,,56,0,TBD,TBD
-44,South,TBD,TBD,,TBD,TBD,,56,0,TBD,TBD
-45,East,TBD,TBD,,TBD,TBD,,57,0,TBD,TBD
-46,East,TBD,TBD,,TBD,TBD,,57,0,TBD,TBD
-47,East,TBD,TBD,,TBD,TBD,,58,0,TBD,TBD
-48,East,TBD,TBD,,TBD,TBD,,58,0,TBD,TBD
-49,Midwest,TBD,TBD,,TBD,TBD,,59,0,TBD,TBD
-50,Midwest,TBD,TBD,,TBD,TBD,,59,0,TBD,TBD
-51,Midwest,TBD,TBD,,TBD,TBD,,60,0,TBD,TBD
-52,Midwest,TBD,TBD,,TBD,TBD,,60,0,TBD,TBD
-53,West,TBD,TBD,,TBD,TBD,,61,0,TBD,TBD
-54,West,TBD,TBD,,TBD,TBD,,61,0,TBD,TBD
-55,South,TBD,TBD,,TBD,TBD,,62,0,TBD,TBD
-56,South,TBD,TBD,,TBD,TBD,,62,0,TBD,TBD
-57,East,TBD,TBD,,TBD,TBD,,63,0,TBD,TBD
-58,East,TBD,TBD,,TBD,TBD,,63,0,TBD,TBD
-59,Midwest,TBD,TBD,,TBD,TBD,,64,0,TBD,TBD
-60,Midwest,TBD,TBD,,TBD,TBD,,64,0,TBD,TBD
-61,West,TBD,TBD,,TBD,TBD,,65,0,TBD,TBD
-62,South,TBD,TBD,,TBD,TBD,,65,0,TBD,TBD
-63,East,TBD,TBD,,TBD,TBD,,66,0,TBD,TBD
-64,Midwest,TBD,TBD,,TBD,TBD,,66,0,TBD,TBD
-65,Final Four,TBD,TBD,,TBD,TBD,,67,0,TBD,TBD
-66,Final Four,TBD,TBD,,TBD,TBD,,67,0,TBD,TBD
-67,Championship,TBD,TBD,,TBD,TBD,,68,0,TBD,TBD
+game_id,region,away_seed,away_key,away_school,home_seed,home_key,home_school,advance_to,home_win_chance,sim_reroll,sim_winner
+1,First Four,12,BOISE,Boise State,12,VCU,VCU,23,0,TBD,TBD
+2,First Four,12,DRAKE,Drake,12,SYRA,Syracuse,15,0,TBD,TBD
+3,First Four,16,MSTM,Mount St. Mary's,16,STPETE,Saint Peter's,13,0,TBD,TBD
+4,First Four,16,NCAT,North Carolina A&T,16,APPLST,Appalachian State,5,0,TBD,TBD
+5,West,16,TBD,TBD,1,GNZG,Gonzaga,37,0,TBD,TBD
+6,West,9,WISC,Wisconsin,8,OKL,Oklahoma,37,0,TBD,TBD
+7,West,12,WKENT,Western Kentucky,5,VIR,Virginia,38,0,TBD,TBD
+8,West,13,TOLEDO,Toledo,4,PUR,Purdue,38,0,TBD,TBD
+9,West,11,LOU,Louisville,6,MISSR,Missouri,39,0,TBD,TBD
+10,West,14,SUTAH,Southern Utah,3,TX,Texas,39,0,TBD,TBD
+11,West,10,MARY,Maryland,7,ORE,Oregon,40,0,TBD,TBD
+12,West,15,CLVST,Cleveland State,2,IOWA,Iowa,40,0,TBD,TBD
+13,South,16,TBD,TBD,1,BAYL,Baylor,41,0,TBD,TBD
+14,South,9,SDST,San Diego State,8,RUTGER,Rutgers,41,0,TBD,TBD
+15,South,12,TBD,TBD,5,TXTECH,Texas Tech,42,0,TBD,TBD
+16,South,13,WINTH,Winthrop,4,FLST,Florida State,42,0,TBD,TBD
+17,South,11,UCLA,UCLA,6,VTECH,Virginia Tech,43,0,TBD,TBD
+18,South,14,GCAN,Grand Canyon,3,ARK,Arkansas,43,0,TBD,TBD
+19,South,10,LOYCH,Loyola Chicago,7,FL,Florida,44,0,TBD,TBD
+20,South,15,PVAM,Prairie View A&M,2,OHIOST,Ohio State,44,0,TBD,TBD
+21,East,16,ORAL,Oral Roberts,1,ILL,Illinois,49,0,TBD,TBD
+22,East,9,MST,Michigan State,8,COL,Colorado,49,0,TBD,TBD
+23,East,12,TBD,TBD,5,TENN,Tennessee,50,0,TBD,TBD
+24,East,13,LIBRTY,Liberty,4,OKST,Oklahoma State,50,0,TBD,TBD
+25,East,11,STBON,St. Bonaventure,6,CLMSN,Clemson,51,0,TBD,TBD
+26,East,14,COLG,Colgate,3,VILL,Villanova,51,0,TBD,TBD
+27,East,10,GTECH,Georgia Tech,7,UCONN,Connecticut,52,0,TBD,TBD
+28,East,15,NICHLS,Nicholls,2,ALA,Alabama,52,0,TBD,TBD
+29,Midwest,16,HARTFD,Hartford,1,MICH,Michigan,45,0,TBD,TBD
+30,Midwest,9,WICHST,Wichita State,8,BYU,BYU,45,0,TBD,TBD
+31,Midwest,12,CREIGH,Creighton,5,USCB,UC Santa Barbara,46,0,TBD,TBD
+32,Midwest,13,NCG,UNCG,4,KAN,Kansas,46,0,TBD,TBD
+33,Midwest,11,COLST,Colorado State,6,USC,USC,47,0,TBD,TBD
+34,Midwest,14,MHST,Morehead State,3,HOU,Houston,47,0,TBD,TBD
+35,Midwest,10,NCAR,North Carolina,7,LSU,LSU,48,0,TBD,TBD
+36,Midwest,15,DREXEL,Drexel,2,WVIR,West Virginia,48,0,TBD,TBD
+37,West,TBD,TBD,TBD,TBD,TBD,TBD,53,0,TBD,TBD
+38,West,TBD,TBD,TBD,TBD,TBD,TBD,53,0,TBD,TBD
+39,West,TBD,TBD,TBD,TBD,TBD,TBD,54,0,TBD,TBD
+40,West,TBD,TBD,TBD,TBD,TBD,TBD,54,0,TBD,TBD
+41,South,TBD,TBD,TBD,TBD,TBD,TBD,55,0,TBD,TBD
+42,South,TBD,TBD,TBD,TBD,TBD,TBD,55,0,TBD,TBD
+43,South,TBD,TBD,TBD,TBD,TBD,TBD,56,0,TBD,TBD
+44,South,TBD,TBD,TBD,TBD,TBD,TBD,56,0,TBD,TBD
+45,East,TBD,TBD,TBD,TBD,TBD,TBD,57,0,TBD,TBD
+46,East,TBD,TBD,TBD,TBD,TBD,TBD,57,0,TBD,TBD
+47,East,TBD,TBD,TBD,TBD,TBD,TBD,58,0,TBD,TBD
+48,East,TBD,TBD,TBD,TBD,TBD,TBD,58,0,TBD,TBD
+49,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,59,0,TBD,TBD
+50,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,59,0,TBD,TBD
+51,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,60,0,TBD,TBD
+52,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,60,0,TBD,TBD
+53,West,TBD,TBD,TBD,TBD,TBD,TBD,61,0,TBD,TBD
+54,West,TBD,TBD,TBD,TBD,TBD,TBD,61,0,TBD,TBD
+55,South,TBD,TBD,TBD,TBD,TBD,TBD,62,0,TBD,TBD
+56,South,TBD,TBD,TBD,TBD,TBD,TBD,62,0,TBD,TBD
+57,East,TBD,TBD,TBD,TBD,TBD,TBD,63,0,TBD,TBD
+58,East,TBD,TBD,TBD,TBD,TBD,TBD,63,0,TBD,TBD
+59,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,64,0,TBD,TBD
+60,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,64,0,TBD,TBD
+61,West,TBD,TBD,TBD,TBD,TBD,TBD,65,0,TBD,TBD
+62,South,TBD,TBD,TBD,TBD,TBD,TBD,65,0,TBD,TBD
+63,East,TBD,TBD,TBD,TBD,TBD,TBD,66,0,TBD,TBD
+64,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,66,0,TBD,TBD
+65,Final Four,TBD,TBD,TBD,TBD,TBD,TBD,67,0,TBD,TBD
+66,Final Four,TBD,TBD,TBD,TBD,TBD,TBD,67,0,TBD,TBD
+67,Championship,TBD,TBD,TBD,TBD,TBD,TBD,68,0,TBD,TBD
