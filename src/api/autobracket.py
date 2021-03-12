@@ -294,7 +294,14 @@ async def single_sim_bracket(
         empty_bracket_df["home_win_chance"], downcast="float"
     )
     engine = AIOEngine(motor_client=client, database="autobracket")
-    distribution_data = [matchup.doc() async for matchup in engine.find(SimulationDist)]
+    distribution_data = [
+        matchup.doc() async for matchup in engine.find(
+            SimulationDist,
+            (SimulationDist.season == season),
+        )
+    ]
+    if not distribution_data:
+        raise HTTPException(status_code=404, detail="No data found!")
     distribution_df = pandas.DataFrame(distribution_data)
 
     # set list of columns needed based on bracket options
@@ -569,7 +576,7 @@ async def full_game_simulation(
     matchup_df["designation"] = "home"
     matchup_df.loc[matchup_df["Team"] == away_key, "designation"] = "away"
 
-    # pull Kenpom tempo data for the two teams
+    # pull Kenpom tempo and EM data for the two teams
     kenpom_data = [
         team
         async for team in engine.find(
@@ -581,6 +588,14 @@ async def full_game_simulation(
     ]
     kenpom_df = pandas.DataFrame([team.doc() for team in kenpom_data])
     kenpom_tempo = kenpom_df.AdjT.sum()
+    # we need some way to normalize for relative strength of teams/conferences, so one team
+    # that plays in a weak conference doesn't get undue weight in the model.
+    # I think we can achieve this with Kenpom's SOS AdjEM. Dividing by 100 gives us
+    # a per-possession average point advantage / disadvantage.
+    # This effect was still a little strong when applied to the RNG on a raw basis,
+    # so we'll also divide it by about 5 to target the effect we want.
+    home_strength = kenpom_df.loc[kenpom_df.Key == home_key, 'OppAdjEM'].item() / 100 / 5
+    away_strength = kenpom_df.loc[kenpom_df.Key == away_key, 'OppAdjEM'].item() / 100 / 5
 
     # if multiprocessing, create a list of matchup dfs representing multiple simulations
     if False:
@@ -595,7 +610,7 @@ async def full_game_simulation(
     else:
         # new array program is working!
         results, distribution = run_simulation(
-            matchup_df, season, sample_size, preserve_size, kenpom_tempo
+            matchup_df, season, sample_size, preserve_size, kenpom_tempo, home_strength, away_strength
         )
 
     sim_time = perf_counter()
@@ -617,12 +632,18 @@ async def full_game_simulation(
     }
 
 
-def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo):
+def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo, home_strength, away_strength):
     # sort df by designation and playerID to guarantee order for later operations
     matchup_df.sort_values(by=["designation", "PlayerID"], inplace=True)
 
     # home and away dict
     home_away_dict = dict(matchup_df.groupby(["designation", "Team"]).size().index)
+    # relative strength dict
+    strength_dict = {
+        home_away_dict["away"]: away_strength,
+        home_away_dict["home"]: home_strength,
+    }
+
     # new columns for simulated game stats
     sim_columns = [
         "sim_seconds",
@@ -721,6 +742,11 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo)
             matchup_list[1 - flag] for flag in possession_status_array[0, :]
         ]
 
+        # array of relative strength values for application to the random number generators
+        # for events
+        offensive_strengths = [strength_dict[team] for team in offensive_teams]
+        defensive_strengths = [strength_dict[team] for team in defensive_teams]
+
         # split df into games with time remaining and games with no time remaining
         # ongoing_games = [sim for sim, value in enumerate(time_remaining) if value > 0]
         games_to_resolve = [
@@ -816,7 +842,6 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo)
                 for x in range(sample_size)
             ]
         ).flatten()
-        current_time = perf_counter()
 
         matchup_df["player_on_floor"] = on_floor_all_sims
         # copy here to avoid a later settingwithcopywarning
@@ -852,7 +877,8 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo)
         # will always be a steal, if turnover_chance is less than steal_chance.)
         # we'll also not use prior probabilities in the turnover logic
         # for now, for this reason.
-        steal_turnover_success = rng.random(size=sample_size)
+        # RNG is also where we'll apply relative team/conference strength.
+        steal_turnover_success = rng.random(size=sample_size) - defensive_strengths
         team_steal_chances = (
             1 - steal_probs.groupby(level=0).prod()["no_steal_chance"].to_numpy()
         )
@@ -921,7 +947,9 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo)
 
         # defensive foul check! (potential improvement, adding offensive fouls and
         # non-shooting fouls)
-        foul_occurred_rng = rng.random(size=sample_size)
+        # note that strength is ADDED here, not subtracted. this will make it more
+        # likely that a weaker team commits a foul
+        foul_occurred_rng = rng.random(size=sample_size) + defensive_strengths
         team_foul_chances = (
             1 - foul_probs.groupby(level=0).prod()["no_foul_chance"].to_numpy()
         )
@@ -994,7 +1022,7 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo)
         )
 
         # block check!
-        block_success_rng = rng.random(size=sample_size)
+        block_success_rng = rng.random(size=sample_size) - defensive_strengths
         team_block_chances = (
             1 - block_probs.groupby(level=0).prod()["no_block_chance"].to_numpy()
         )
@@ -1060,7 +1088,7 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo)
         given_probabilities = given_probabilities * (1 - team_block_chances)
 
         # time to see if the shots went in. this is a player check so expand array 5x
-        shot_success_rng = np.repeat(rng.random(size=sample_size), 5)
+        shot_success_rng = np.repeat((rng.random(size=sample_size) - offensive_strengths), 5)
         # successful shots can't happen in games that are done with their loop.
         successful_twos = (
             two_attempt_array
@@ -1162,7 +1190,7 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo)
             on_floor_df,
             given_probabilities,
         )
-        assist_success_rng = rng.random(size=sample_size)
+        assist_success_rng = rng.random(size=sample_size) - offensive_strengths
         team_assist_chances = (
             1 - assist_probs.groupby(level=0).prod()["no_assist_chance"].to_numpy()
         )
@@ -1189,7 +1217,7 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo)
         ) = rebound_distribution(offensive_teams, defensive_teams, on_floor_df)
 
         # rebound type check!
-        off_reb_rng = rng.random(size=sample_size)
+        off_reb_rng = rng.random(size=sample_size) - offensive_strengths
         team_off_reb_chances = off_reb_chances.groupby(level=0).max().to_numpy()
 
         # successful rebound can't happen in games that didn't go to a rebound situation.
@@ -1425,6 +1453,11 @@ def assist_distribution(
         successful_shot_prob, 5
     )
     assist_probs["no_assist_chance"] = 1 - assist_probs["assist_chance"]
+
+    # if successful_shot_prob was zero, we'll have some infinite values in our dataframe.
+    # this replaces them with 1s and 0s
+    assist_probs.replace(np.inf, 1, inplace=True)
+    assist_probs.replace(-np.inf, 0, inplace=True)
 
     return assist_probs
 
