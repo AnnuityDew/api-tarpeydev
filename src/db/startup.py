@@ -15,7 +15,7 @@ async def motor_startup():
     atlas_object.client = AsyncIOMotorClient(
         MONGO_CONNECT,
         # maxPoolSize=15,
-        maxIdleTimeMS=1000*60*3,
+        maxIdleTimeMS=1000*60*5,
     )
 
 

@@ -33,7 +33,7 @@ def simulate_all_matchups():
     tournament_matchups = list(combinations(tournament_teams, 2))
     # generate list of request URLs to queue up
     tournament_game_urls = [
-        f"https://api.tarpey.dev/autobracket/sim/{year}/{matchup[0]}/{matchup[1]}/200/10"
+        f"https://api.tarpey.dev/autobracket/sim/{year}/{matchup[0]}/{matchup[1]}/500/10"
         for matchup in tournament_matchups
     ]
 

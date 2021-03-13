@@ -1395,25 +1395,29 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo,
 
 
 def event_sampler(rng, games_df, games_numpy):
-    event_array = (
-        np.array(
-            [
-                np.isin(
-                    games_numpy[x : x + 5, 2],
-                    rng.choice(
+    try:
+        event_array = (
+            np.array(
+                [
+                    np.isin(
                         games_numpy[x : x + 5, 2],
-                        size=1,
-                        replace=False,
-                        p=(games_numpy[0:5, 3] / games_numpy[0:5, 3].sum()).astype(
-                            float
+                        rng.choice(
+                            games_numpy[x : x + 5, 2],
+                            size=1,
+                            replace=False,
+                            p=(games_numpy[0:5, 3] / games_numpy[0:5, 3].sum()).astype(
+                                float
+                            ),
                         ),
-                    ),
-                )
-                for x in range(0, len(games_df), 5)
-            ]
-        ).flatten()
-        * 1
-    )
+                    )
+                    for x in range(0, len(games_df), 5)
+                ]
+            ).flatten()
+            * 1
+        )
+    except ValueError:
+        print("uh oh!")
+        raise
     return event_array
 
 
