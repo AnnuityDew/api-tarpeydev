@@ -5,6 +5,7 @@ from math import floor
 import multiprocessing
 import pathlib
 from typing import Dict
+from odmantic.bson import ObjectId
 from odmantic.model import EmbeddedModel
 import orjson
 from time import perf_counter
@@ -13,7 +14,7 @@ from time import perf_counter
 from fastapi import APIRouter, HTTPException, Depends, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 import numpy as np
-import pandas
+import pandas as pd
 from odmantic import AIOEngine, Field, Model, query
 import requests
 from scipy import stats
@@ -22,6 +23,7 @@ from sklearn.cluster import KMeans
 # import custom local stuff
 from instance.config import FANTASY_DATA_KEY_CBB, FANTASY_DATA_KEY_FREE
 from src.db.atlas import get_odm
+from src.api.apikey import get_api_key
 from src.api.security import validate_jwt
 
 
@@ -200,7 +202,7 @@ async def k_means_players(
         )
     ]
 
-    player_df = pandas.DataFrame(
+    player_df = pd.DataFrame(
         [player_season.doc() for player_season in player_data]
     ).set_index(["Team", "PlayerID"])
 
@@ -284,29 +286,34 @@ async def single_sim_bracket(
     client: AsyncIOMotorClient = Depends(get_odm),
 ):
     # first grab an empty bracket
-    empty_bracket_df = pandas.read_csv(
+    empty_bracket_df = pd.read_csv(
         pathlib.Path("src/db/matchup_table_2021.csv"),
         index_col="game_id",
     ).convert_dtypes()
 
     # auto dtypes are mostly good, but home win chance needs to be a float
-    empty_bracket_df["home_win_chance"] = pandas.to_numeric(
+    empty_bracket_df["home_win_chance"] = pd.to_numeric(
         empty_bracket_df["home_win_chance"], downcast="float"
     )
     engine = AIOEngine(motor_client=client, database="autobracket")
     distribution_data = [
-        matchup.doc() async for matchup in engine.find(
+        matchup.doc()
+        async for matchup in engine.find(
             SimulationDist,
             (SimulationDist.season == season),
         )
     ]
     if not distribution_data:
         raise HTTPException(status_code=404, detail="No data found!")
-    distribution_df = pandas.DataFrame(distribution_data)
+    distribution_df = pd.DataFrame(distribution_data)
 
     # set list of columns needed based on bracket options
     if flavor == BracketFlavor.NONE:
-        needed_columns = ["home_win_chance_median", "median_margin_top", "median_margin_bottom"]
+        needed_columns = [
+            "home_win_chance_median",
+            "median_margin_top",
+            "median_margin_bottom",
+        ]
     elif flavor == BracketFlavor.MILD:
         needed_columns = [
             "home_win_chance_mild",
@@ -390,16 +397,16 @@ async def single_sim_bracket(
             ]
         else:
             # flip values where the away tournament team is the home simulation team
-            empty_bracket_df.loc[x, needed_columns[0]] = 1 - filtered_df.at[
-                list(filtered_df.index)[0], needed_columns[0]
-            ]
+            empty_bracket_df.loc[x, needed_columns[0]] = (
+                1 - filtered_df.at[list(filtered_df.index)[0], needed_columns[0]]
+            )
             # flip high and low values AND the sign
-            empty_bracket_df.loc[x, needed_columns[1]] = -1 * filtered_df.at[
-                list(filtered_df.index)[0], needed_columns[2]
-            ]
-            empty_bracket_df.loc[x, needed_columns[2]] = -1 * filtered_df.at[
-                list(filtered_df.index)[0], needed_columns[1]
-            ]
+            empty_bracket_df.loc[x, needed_columns[1]] = (
+                -1 * filtered_df.at[list(filtered_df.index)[0], needed_columns[2]]
+            )
+            empty_bracket_df.loc[x, needed_columns[2]] = (
+                -1 * filtered_df.at[list(filtered_df.index)[0], needed_columns[1]]
+            )
 
         # time to add query data for looking up box scores later
         if game_winner == home_key:
@@ -452,19 +459,32 @@ async def single_sim_bracket(
     # we need to convert objectid to string here. can't output objectid to json natively
     box_score_ids = [str(game["_id"]) for game in box_score_data]
     # index will be object IDs
-    box_score_game_summary_df = pandas.DataFrame(box_score_game_summaries).set_index(
+    box_score_game_summary_df = pd.DataFrame(box_score_game_summaries).set_index(
         ["away_key", "home_key"]
     )
     box_score_game_summary_df["sim_ObjectId"] = box_score_ids
     selected_box_scores = box_score_game_summary_df.groupby(level=[0, 1]).sample(n=1)
 
     # final returnable DF!
-    bracket_df = empty_bracket_df.merge(selected_box_scores, left_on=["away_key", "home_key"], right_index=True, how="left")
-    bracket_df_reversed = empty_bracket_df.merge(selected_box_scores, left_on=["home_key", "away_key"], right_index=True, how="left")
+    bracket_df = empty_bracket_df.merge(
+        selected_box_scores,
+        left_on=["away_key", "home_key"],
+        right_index=True,
+        how="left",
+    )
+    bracket_df_reversed = empty_bracket_df.merge(
+        selected_box_scores,
+        left_on=["home_key", "away_key"],
+        right_index=True,
+        how="left",
+    )
     bracket_df.update(bracket_df_reversed)
 
     # bracket to JSON
-    bracket_json = orjson.loads(bracket_df.to_json(orient="records", default_handler=orjson.dumps))
+    bracket_json = orjson.loads(
+        bracket_df.to_json(orient="records", default_handler=orjson.dumps)
+    )
+
     return bracket_json
 
 
@@ -492,7 +512,7 @@ async def single_sim_game(
     ]
 
     # convert to pandas dataframe and calculate quantiles
-    game_df = pandas.DataFrame(game_data, columns=["ObjectId", "margin"])
+    game_df = pd.DataFrame(game_data, columns=["ObjectId", "margin"])
     quantiles = game_df.quantile(q=[0.10, 0.25, 0.40, 0.60, 0.75, 0.90])
     # depending on what the user selected, filter the df for sampling
     if flavor == BracketFlavor.NONE:
@@ -516,6 +536,21 @@ async def single_sim_game(
     )
 
     return game_data
+
+
+@ab_api.get("/game/{game_id}")
+async def recall_sim_game(
+    game_id: ObjectId,
+    client: AsyncIOMotorClient = Depends(get_odm),
+):
+
+    engine = AIOEngine(motor_client=client, database="autobracket")
+    box_score = await engine.find(
+        SimulationRun,
+        (SimulationRun.id == game_id),
+    )
+
+    return box_score
 
 
 @ab_api.get("/sim/margins/{season}/{away_key}/{home_key}")
@@ -544,14 +579,14 @@ async def matchup_sim_margin(
 
 
 @ab_api.post(
-    "/sim/{season}/{away_key}/{home_key}/{sample_size}/{preserve_size}",
+    "/sim/{season}/{away_key}/{home_key}/{sample_size}",
+    dependencies=[Depends(get_api_key)],
 )
 async def full_game_simulation(
     season: FantasyDataSeason,
     away_key: str,
     home_key: str,
     sample_size: int = Path(..., gt=0, le=1000),
-    preserve_size: int = Path(..., ge=10, le=100),
     client: AsyncIOMotorClient = Depends(get_odm),
 ):
     # performance timer
@@ -569,9 +604,7 @@ async def full_game_simulation(
     ]
 
     # create a dataframe representing one simulation
-    matchup_df = pandas.DataFrame(
-        [player_season.doc() for player_season in matchup_data]
-    )
+    matchup_df = pd.DataFrame([player_season.doc() for player_season in matchup_data])
     # create an Away and Home field for identification in the simulation
     matchup_df["designation"] = "home"
     matchup_df.loc[matchup_df["Team"] == away_key, "designation"] = "away"
@@ -586,7 +619,7 @@ async def full_game_simulation(
             sort=(CBBTeam.Key),
         )
     ]
-    kenpom_df = pandas.DataFrame([team.doc() for team in kenpom_data])
+    kenpom_df = pd.DataFrame([team.doc() for team in kenpom_data])
     kenpom_tempo = kenpom_df.AdjT.sum()
     # we need some way to normalize for relative strength of teams/conferences, so one team
     # that plays in a weak conference doesn't get undue weight in the model.
@@ -594,8 +627,12 @@ async def full_game_simulation(
     # a per-possession average point advantage / disadvantage.
     # This effect was still a little strong when applied to the RNG on a raw basis,
     # so we'll also divide it by about 5 to target the effect we want.
-    home_strength = kenpom_df.loc[kenpom_df.Key == home_key, 'OppAdjEM'].item() / 100 / 5
-    away_strength = kenpom_df.loc[kenpom_df.Key == away_key, 'OppAdjEM'].item() / 100 / 5
+    home_strength = (
+        kenpom_df.loc[kenpom_df.Key == home_key, "OppAdjEM"].item() / 100 / 5
+    )
+    away_strength = (
+        kenpom_df.loc[kenpom_df.Key == away_key, "OppAdjEM"].item() / 100 / 5
+    )
 
     # if multiprocessing, create a list of matchup dfs representing multiple simulations
     if False:
@@ -610,7 +647,7 @@ async def full_game_simulation(
     else:
         # new array program is working!
         results, distribution = run_simulation(
-            matchup_df, season, sample_size, preserve_size, kenpom_tempo, home_strength, away_strength
+            matchup_df, season, sample_size, kenpom_tempo, home_strength, away_strength
         )
 
     sim_time = perf_counter()
@@ -632,7 +669,9 @@ async def full_game_simulation(
     }
 
 
-def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo, home_strength, away_strength):
+def run_simulation(
+    matchup_df, season, sample_size, kenpom_tempo, home_strength, away_strength
+):
     # sort df by designation and playerID to guarantee order for later operations
     matchup_df.sort_values(by=["designation", "PlayerID"], inplace=True)
 
@@ -725,7 +764,7 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo,
 
     # expand the dataframe into X number of simulations. (prepend the index)
     # https://stackoverflow.com/questions/14744068/prepend-a-level-to-a-pandas-multiindex
-    matchup_df = pandas.concat(
+    matchup_df = pd.concat(
         [matchup_df.copy() for x in range(sample_size)],
         keys=[x for x in range(sample_size)],
         names=["simulation"],
@@ -1088,7 +1127,9 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo,
         given_probabilities = given_probabilities * (1 - team_block_chances)
 
         # time to see if the shots went in. this is a player check so expand array 5x
-        shot_success_rng = np.repeat((rng.random(size=sample_size) - offensive_strengths), 5)
+        shot_success_rng = np.repeat(
+            (rng.random(size=sample_size) - offensive_strengths), 5
+        )
         # successful shots can't happen in games that are done with their loop.
         successful_twos = (
             two_attempt_array
@@ -1301,7 +1342,7 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo,
     team_box_score_df = box_score_df.groupby(level=[0, 1]).sum().convert_dtypes()
 
     # multiindex slice to get the margin per simulation
-    idx = pandas.IndexSlice
+    idx = pd.IndexSlice
     team_box_score_df.loc[idx[:, home_away_dict["home"], :], "sim_points"].droplevel(
         "Team"
     )
@@ -1317,7 +1358,9 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo,
 
     # preserve a subset of runs that will actually be persisted to the database.
     # if we run into errors it's probably the interpolation that needs further examination.
-    quantiles = np.linspace(0, 1, preserve_size)
+    key_quantiles = [0.00, 0.10, 0.25, 0.40, 0.60, 0.75, 0.90, 1.00]
+    extra_quantiles = key_quantiles + [0.05, 0.175, 0.325, 0.50, 0.675, 0.825, 0.95]
+    quantiles = np.array(extra_quantiles)
     margins_to_save = margins.quantile(q=quantiles, interpolation="nearest").to_numpy()
     games_to_save = []
     for margin in margins_to_save:
@@ -1347,26 +1390,36 @@ def run_simulation(matchup_df, season, sample_size, preserve_size, kenpom_tempo,
 
     # to lighten the load on the DB, we'll preserve the simulation distribution.
     # this will be a way to avoid pulling tons of data for each bracket request
-    user_breakpoints = margins.quantile(
-        q=[0.00, 0.10, 0.25, 0.40, 0.60, 0.75, 0.90, 1.00], interpolation="nearest"
-    )
+    user_breakpoints = margins.quantile(q=key_quantiles, interpolation="nearest")
     home_win_chance_max = len(margins.loc[margins > 0]) / len(margins)
     home_win_chance_medium = len(
-        margins.loc[(user_breakpoints[0.90] >= margins) & (margins >= user_breakpoints[0.10]) & (margins > 0)]
+        margins.loc[
+            (user_breakpoints[0.90] >= margins)
+            & (margins >= user_breakpoints[0.10])
+            & (margins > 0)
+        ]
     ) / len(
         margins.loc[
             (user_breakpoints[0.90] >= margins) & (margins >= user_breakpoints[0.10])
         ]
     )
     home_win_chance_mild = len(
-        margins.loc[(user_breakpoints[0.75] >= margins) & (margins >= user_breakpoints[0.25]) & (margins > 0)]
+        margins.loc[
+            (user_breakpoints[0.75] >= margins)
+            & (margins >= user_breakpoints[0.25])
+            & (margins > 0)
+        ]
     ) / len(
         margins.loc[
             (user_breakpoints[0.75] >= margins) & (margins >= user_breakpoints[0.25])
         ]
     )
     home_win_chance_median = len(
-        margins.loc[(user_breakpoints[0.60] >= margins) & (margins >= user_breakpoints[0.40]) & (margins > 0)]
+        margins.loc[
+            (user_breakpoints[0.60] >= margins)
+            & (margins >= user_breakpoints[0.40])
+            & (margins > 0)
+        ]
     ) / len(
         margins.loc[
             (user_breakpoints[0.60] >= margins) & (margins >= user_breakpoints[0.40])
@@ -1697,7 +1750,10 @@ def rebound_distribution(offensive_teams, defensive_teams, on_floor_df):
     )
 
 
-@ab_api.get("/FantasyDataRefresh/PlayerGameDay/{game_year}/{game_month}/{game_day}")
+@ab_api.get(
+    "/FantasyDataRefresh/PlayerGameDay/{game_year}/{game_month}/{game_day}",
+    dependencies=[Depends(get_api_key)],
+)
 async def refresh_fd_player_games(
     game_year: int,
     game_month: int,
@@ -1722,7 +1778,9 @@ async def refresh_fd_player_games(
     return {"message": "Mongo refresh complete!"}
 
 
-@ab_api.get("/FantasyDataRefresh/PlayerSeason/{season}")
+@ab_api.get(
+    "/FantasyDataRefresh/PlayerSeason/{season}", dependencies=[Depends(get_api_key)]
+)
 async def refresh_fd_player_season(
     season: FantasyDataSeason,
     client: AsyncIOMotorClient = Depends(get_odm),
@@ -1736,7 +1794,7 @@ async def refresh_fd_player_season(
     engine = AIOEngine(motor_client=client, database="autobracket")
 
     # data manipulation is easier in Pandas!
-    player_season_df = pandas.DataFrame(r.json())
+    player_season_df = pd.DataFrame(r.json())
 
     # season should be string (ex: 2020POST). then convert other columns.
     # if we do the opposite order the Season column will throw an error.
@@ -1760,22 +1818,20 @@ async def refresh_fd_player_season(
     # (re-)calculated fields for use in analysis. need to cast to float for division
     # to work properly, then fillna with zero
     player_season_df["two_attempt_chance"] = (
-        pandas.to_numeric(player_season_df["TwoPointersAttempted"], downcast="float")
-        / pandas.to_numeric(player_season_df["FieldGoalsAttempted"], downcast="float")
+        pd.to_numeric(player_season_df["TwoPointersAttempted"], downcast="float")
+        / pd.to_numeric(player_season_df["FieldGoalsAttempted"], downcast="float")
     ).fillna(0)
     player_season_df["two_chance"] = (
-        pandas.to_numeric(player_season_df["TwoPointersMade"], downcast="float")
-        / pandas.to_numeric(player_season_df["TwoPointersAttempted"], downcast="float")
+        pd.to_numeric(player_season_df["TwoPointersMade"], downcast="float")
+        / pd.to_numeric(player_season_df["TwoPointersAttempted"], downcast="float")
     ).fillna(0)
     player_season_df["three_chance"] = (
-        pandas.to_numeric(player_season_df["ThreePointersMade"], downcast="float")
-        / pandas.to_numeric(
-            player_season_df["ThreePointersAttempted"], downcast="float"
-        )
+        pd.to_numeric(player_season_df["ThreePointersMade"], downcast="float")
+        / pd.to_numeric(player_season_df["ThreePointersAttempted"], downcast="float")
     ).fillna(0)
     player_season_df["ft_chance"] = (
-        pandas.to_numeric(player_season_df["FreeThrowsMade"], downcast="float")
-        / pandas.to_numeric(player_season_df["FreeThrowsAttempted"], downcast="float")
+        pd.to_numeric(player_season_df["FreeThrowsMade"], downcast="float")
+        / pd.to_numeric(player_season_df["FreeThrowsAttempted"], downcast="float")
     ).fillna(0)
 
     # back to json for writing to DB
@@ -1785,7 +1841,10 @@ async def refresh_fd_player_season(
     return {"message": "Mongo refresh complete!"}
 
 
-@ab_api.get("/FantasyDataRefresh/PlayerSeasonTeam/{season}/{team}")
+@ab_api.get(
+    "/FantasyDataRefresh/PlayerSeasonTeam/{season}/{team}",
+    dependencies=[Depends(get_api_key)],
+)
 async def refresh_fd_player_season_team(
     season: FantasyDataSeason,
     team: str,
@@ -1799,17 +1858,17 @@ async def refresh_fd_player_season_team(
     return {"message": "Mongo refresh complete!"}
 
 
-@ab_api.get("/FantasyDataRefresh/Teams/{season}")
+@ab_api.get("/FantasyDataRefresh/Teams/{season}", dependencies=[Depends(get_api_key)])
 async def refresh_fd_teams(
     season: FantasyDataSeason,
     client: AsyncIOMotorClient = Depends(get_odm),
 ):
     # first we'll grab Kenpom CSV in this step, renaming a column
-    kenpom_2020_df = pandas.read_csv(
+    kenpom_2020_df = pd.read_csv(
         pathlib.Path(f"src/db/kenpom_{season}.csv"),
     ).rename(columns={"Team": "kenpom_team"})
     # mapping table of Kenpom names to FantasyData.io names
-    school_names_df = pandas.read_csv(
+    school_names_df = pd.read_csv(
         pathlib.Path(f"src/db/school_names.csv"),
     ).rename(columns={"Team": "kenpom_team"})
     # join kenpom data to map table
@@ -1827,7 +1886,7 @@ async def refresh_fd_teams(
     )
 
     # read teams table, set index
-    teams_df = pandas.DataFrame(r.json()).set_index("TeamID")
+    teams_df = pd.DataFrame(r.json()).set_index("TeamID")
 
     # drop columns we don't need, then teams with no conference
     teams_df.drop(

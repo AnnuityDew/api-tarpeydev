@@ -10,6 +10,8 @@ from instance.config import (
     GCP_PROJECT,
     GCP_QUEUE_SA_EMAIL,
     OKTA_ENCODED_ID_SECRET,
+    API_KEY_NAME,
+    API_KEY,
 )
 import requests
 
@@ -49,20 +51,20 @@ def simulate_all_matchups():
     # Construct the fully qualified queue name.
     parent = client.queue_path(project, location, queue)
 
-    # initial request for JWT
-    r = requests.post(
-        f"https://api.tarpey.dev/security/token",
-        headers={
-            "accept": "application/json",
-            "authorization": "Basic " + OKTA_ENCODED_ID_SECRET,
-        },
-        data={"grant_type": "client_credentials", "scope": "all_data"},
-    )
+    # initial request for JWT if necessary
+    # r = requests.post(
+    #     f"https://api.tarpey.dev/security/token",
+    #     headers={
+    #         "accept": "application/json",
+    #         "authorization": "Basic " + OKTA_ENCODED_ID_SECRET,
+    #     },
+    #     data={"grant_type": "client_credentials", "scope": "all_data"},
+    # )
 
     # now we can construct task queue headers/body
     headers = {
         "accept": "application/json",
-        "Authorization": "Bearer " + r.json()["access_token"],
+        API_KEY_NAME: API_KEY,
     }
     payload = None
 
