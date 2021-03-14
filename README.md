@@ -1,5 +1,8 @@
 # tarpey.dev API
-API for my apps hosted at [tarpey.dev](tarpey.dev/). **(Feedback is welcome - I'm self-taught and looking to learn more!)**
+API for my apps hosted at [tarpey.dev](tarpey.dev/).
+
+**(Feedback is welcome - I'm self-taught and looking to learn more!)**
+* [Twitter](https://twitter.com/MichaelTarpey)
 
 ## URLs
 * Live: [api.tarpey.dev](https://api.tarpey.dev/)
