@@ -141,6 +141,12 @@ class SimulationDist(Model):
     home_win_chance_median: float
     median_margin_top: int
     median_margin_bottom: int
+    median_margin: int
+
+
+class SimulatedBracket(Model):
+    flavor: BracketFlavor
+    bracket: Dict
 
 
 @ab_api.get("/stats/{season}/all")
@@ -479,6 +485,11 @@ async def single_sim_bracket(
         how="left",
     )
     bracket_df.update(bracket_df_reversed)
+    
+    # save bracket to DB for later analysis
+    bracket_teams = bracket_df[['sim_winner']].to_dict()["sim_winner"]
+    bracket = { f"{key:02}":team for key, team in bracket_teams.items() }
+    await engine.save(SimulatedBracket(flavor=flavor, bracket=bracket))
 
     # bracket to JSON
     bracket_json = orjson.loads(
@@ -1358,8 +1369,8 @@ def run_simulation(
 
     # preserve a subset of runs that will actually be persisted to the database.
     # if we run into errors it's probably the interpolation that needs further examination.
-    key_quantiles = [0.00, 0.10, 0.25, 0.40, 0.60, 0.75, 0.90, 1.00]
-    extra_quantiles = key_quantiles + [0.05, 0.175, 0.325, 0.50, 0.675, 0.825, 0.95]
+    key_quantiles = [0.00, 0.10, 0.25, 0.40, 0.50, 0.60, 0.75, 0.90, 1.00]
+    extra_quantiles = key_quantiles + [0.05, 0.175, 0.325, 0.675, 0.825, 0.95]
     quantiles = np.array(extra_quantiles)
     margins_to_save = margins.quantile(q=quantiles, interpolation="nearest").to_numpy()
     games_to_save = []
@@ -1442,6 +1453,7 @@ def run_simulation(
         "home_win_chance_median": home_win_chance_median,
         "median_margin_top": user_breakpoints[0.60],
         "median_margin_bottom": user_breakpoints[0.40],
+        "median_margin": user_breakpoints[0.50],
     }
 
     return results_array, distribution_data
