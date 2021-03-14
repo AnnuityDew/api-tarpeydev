@@ -32,7 +32,7 @@ def simulate_all_matchups():
     away_keys.remove("TBD")
     home_keys.remove("TBD")
     tournament_teams = away_keys + home_keys
-    tournament_matchups = list(combinations(tournament_teams, 2))[0:9]
+    tournament_matchups = list(combinations(tournament_teams, 2))
     # generate list of request URLs to queue up
     tournament_game_urls = [
         f"https://api.tarpey.dev/autobracket/sim/{year}/{matchup[0]}/{matchup[1]}/1000"
