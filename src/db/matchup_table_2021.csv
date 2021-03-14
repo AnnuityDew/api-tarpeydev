@@ -19,22 +19,22 @@ game_id,region,away_seed,away_key,away_school,home_seed,home_key,home_school,adv
 18,South,14,GCAN,Grand Canyon,3,ARK,Arkansas,43,0,TBD,TBD
 19,South,10,LOYCH,Loyola Chicago,7,FL,Florida,44,0,TBD,TBD
 20,South,15,PVAM,Prairie View A&M,2,OHIOST,Ohio State,44,0,TBD,TBD
-21,East,16,ORAL,Oral Roberts,1,ILL,Illinois,49,0,TBD,TBD
-22,East,9,MST,Michigan State,8,COL,Colorado,49,0,TBD,TBD
-23,East,12,TBD,TBD,5,TENN,Tennessee,50,0,TBD,TBD
-24,East,13,LIBRTY,Liberty,4,OKST,Oklahoma State,50,0,TBD,TBD
-25,East,11,STBON,St. Bonaventure,6,CLMSN,Clemson,51,0,TBD,TBD
-26,East,14,COLG,Colgate,3,VILL,Villanova,51,0,TBD,TBD
-27,East,10,GTECH,Georgia Tech,7,UCONN,Connecticut,52,0,TBD,TBD
-28,East,15,NICHLS,Nicholls,2,ALA,Alabama,52,0,TBD,TBD
-29,Midwest,16,HARTFD,Hartford,1,MICH,Michigan,45,0,TBD,TBD
-30,Midwest,9,WICHST,Wichita State,8,BYU,BYU,45,0,TBD,TBD
-31,Midwest,12,CREIGH,Creighton,5,USCB,UC Santa Barbara,46,0,TBD,TBD
-32,Midwest,13,NCG,UNCG,4,KAN,Kansas,46,0,TBD,TBD
-33,Midwest,11,COLST,Colorado State,6,USC,USC,47,0,TBD,TBD
-34,Midwest,14,MHST,Morehead State,3,HOU,Houston,47,0,TBD,TBD
-35,Midwest,10,NCAR,North Carolina,7,LSU,LSU,48,0,TBD,TBD
-36,Midwest,15,DREXEL,Drexel,2,WVIR,West Virginia,48,0,TBD,TBD
+21,East,16,ORAL,Oral Roberts,1,ILL,Illinois,45,0,TBD,TBD
+22,East,9,MST,Michigan State,8,COL,Colorado,45,0,TBD,TBD
+23,East,12,TBD,TBD,5,TENN,Tennessee,46,0,TBD,TBD
+24,East,13,LIBRTY,Liberty,4,OKST,Oklahoma State,46,0,TBD,TBD
+25,East,11,STBON,St. Bonaventure,6,CLMSN,Clemson,47,0,TBD,TBD
+26,East,14,COLG,Colgate,3,VILL,Villanova,47,0,TBD,TBD
+27,East,10,GTECH,Georgia Tech,7,UCONN,Connecticut,48,0,TBD,TBD
+28,East,15,NICHLS,Nicholls,2,ALA,Alabama,48,0,TBD,TBD
+29,Midwest,16,HARTFD,Hartford,1,MICH,Michigan,49,0,TBD,TBD
+30,Midwest,9,WICHST,Wichita State,8,BYU,BYU,49,0,TBD,TBD
+31,Midwest,12,CREIGH,Creighton,5,USCB,UC Santa Barbara,50,0,TBD,TBD
+32,Midwest,13,NCG,UNCG,4,KAN,Kansas,50,0,TBD,TBD
+33,Midwest,11,COLST,Colorado State,6,USC,USC,51,0,TBD,TBD
+34,Midwest,14,MHST,Morehead State,3,HOU,Houston,51,0,TBD,TBD
+35,Midwest,10,NCAR,North Carolina,7,LSU,LSU,52,0,TBD,TBD
+36,Midwest,15,DREXEL,Drexel,2,WVIR,West Virginia,52,0,TBD,TBD
 37,West,TBD,TBD,TBD,TBD,TBD,TBD,53,0,TBD,TBD
 38,West,TBD,TBD,TBD,TBD,TBD,TBD,53,0,TBD,TBD
 39,West,TBD,TBD,TBD,TBD,TBD,TBD,54,0,TBD,TBD
