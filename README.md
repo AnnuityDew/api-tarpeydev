@@ -38,6 +38,6 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/). **(Feedback is welcome - I'
   * [Proper way to use multiprocessor.Pool in a nested loop](https://stackoverflow.com/questions/20387510/proper-way-to-use-multiprocessor-pool-in-a-nested-loop)
   * [When should we call multiprocessing.Pool.join?](https://stackoverflow.com/questions/38271547/when-should-we-call-multiprocessing-pool-join)
 * Pandas techniques:
-[Select rows in pandas MultiIndex DataFrame](https://stackoverflow.com/questions/53927460/select-rows-in-pandas-multiindex-dataframe)
-(https://stackoverflow.com/questions/26046208/normalize-dataframe-by-group)
-[Normalize DataFrame by group](https://rtyley.github.io/bfg-repo-cleaner/)
+  * [Select rows in pandas MultiIndex DataFrame](https://stackoverflow.com/questions/53927460/select-rows-in-pandas-multiindex-dataframe)
+  * [Normalize DataFrame by group](https://stackoverflow.com/questions/26046208/normalize-dataframe-by-group)
+* [BFG Repo Cleaner](https://rtyley.github.io/bfg-repo-cleaner/)
