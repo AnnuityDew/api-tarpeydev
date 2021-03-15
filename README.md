@@ -50,3 +50,9 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/).
   * [Select rows in pandas MultiIndex DataFrame](https://stackoverflow.com/questions/53927460/select-rows-in-pandas-multiindex-dataframe)
   * [Normalize DataFrame by group](https://stackoverflow.com/questions/26046208/normalize-dataframe-by-group)
 * [BFG Repo Cleaner](https://rtyley.github.io/bfg-repo-cleaner/)
+* Inspiration for autobracket:
+  * [How all Statistics are Counted - A Primer](https://edge-forums.nbcsports.com/topic/269757-how-all-statistics-are-counted-a-primer/)
+  * [Kenpom Ratings Glossary](https://kenpom.com/blog/ratings-glossary/)
+  * [How are possessions counted in basketball?](https://www.reddit.com/r/nba/comments/5oe4go/how_are_possessions_counted_in_basketball/)
+  * [Statistical Analysis Primer](https://www.nba.com/thunder/news/stats101.html)
+  * [Exponential Distributions](https://online.stat.psu.edu/stat414/lesson/15/15.1)
