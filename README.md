@@ -2,11 +2,17 @@
 API for my apps hosted at [tarpey.dev](tarpey.dev/).
 
 **(Feedback is welcome - I'm self-taught and looking to learn more!)**
-* [Twitter](https://twitter.com/MichaelTarpey)
+* Twitter: [@MichaelTarpey](https://twitter.com/MichaelTarpey)
+* Email: [mike@tarpey.dev](mailto:mike@tarpey.dev)
 
 ## URLs
 * Live: [api.tarpey.dev](https://api.tarpey.dev/)
 * Preview: [dev-api.tarpey.dev](https://dev-api.tarpey.dev) (unless I broke something)
+
+## Special Thanks
+* Data for autobracket provided by:
+  * [kenpom.com](https://jodie.lekoarts.de) (adjustment factors used in the model)
+  * [fantasydata.com](https://fantasydata.com/) (season stats)
 
 ## Key Packages
 * Built with [FastAPI](https://fastapi.tiangolo.com)
