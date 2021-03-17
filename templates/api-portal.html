@@ -3,11 +3,9 @@
 
 <head>
   <title>tarpey.dev API</title>
+  <meta name="author" content="Mike Tarpey">
   <meta name="description" content="API for Mike Tarpey's apps hosted at https://tarpey.dev">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="author" content="Mike Tarpey">
-  <meta name="msapplication-TileColor" content="#2d89ef">
-  <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" sizes="180x180"
     href="{{ url_for('static', path='/index/favicon/apple-touch-icon.png') }}">
   <link rel="icon" type="image/png" sizes="32x32"
@@ -15,8 +13,20 @@
   <link rel="icon" type="image/png" sizes="16x16"
     href="{{ url_for('static', path='/index/favicon/favicon-16x16.png') }}">
   <link rel="manifest" href="{{ url_for('static', path='/index/favicon/site.webmanifest') }}">
-  <link rel="mask-icon" href="{{ url_for('static', path='/index/favicon/safari-pinned-tab.svg') }}" color="#5bbad5">
+  <link rel="mask-icon" href="{{ url_for('static', path='/index/favicon/safari-pinned-tab.svg') }}" color="#7a8cc0">
+  <meta name="msapplication-TileColor" content="#7a8cc0">
+  <meta name="theme-color" content="#7a8cc0">
   <link rel="shortcut icon" href="{{ url_for('static', path='/index/favicon/favicon.ico') }}">
+
+  <meta property="og:title" content="tarpey.dev API" />
+  <meta property="og:description" content="API for Mike Tarpey's apps hosted at https://tarpey.dev" />
+  <meta property="og:url" content="https://api.tarpey.dev" />
+  <meta property="og:image" content="{{ url_for('static', path='/index/images/apitarpeydevog.png') }}" />
+  <meta name="twitter:image" content="{{ url_for('static', path='/index/images/apitarpeydevog.png') }}" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta property="og:site_name" content="tarpey.dev API" />
+
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='/index/css/style.css') }}">
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.28/dist/themes/base.css">
