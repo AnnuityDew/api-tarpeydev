@@ -149,6 +149,47 @@ class SimulatedBracket(Model):
     bracket: Dict
 
 
+@ab_api.get("/simulations/all/{away_key}/{home_key}")
+async def get_one_simulation_dist(
+    away_key: str,
+    home_key: str,
+    client: AsyncIOMotorClient = Depends(get_odm),
+):
+    engine = AIOEngine(motor_client=client, database="autobracket")
+    data = [
+        dist
+        async for dist in engine.find(
+            SimulationDist,
+            (
+                (SimulationDist.away_key == away_key) &
+                (SimulationDist.home_key == home_key)
+            ) |
+            (
+                (SimulationDist.away_key == home_key) &
+                (SimulationDist.home_key == away_key)
+            ),
+        )
+    ]
+
+    if data:
+        return data
+    else:
+        raise HTTPException(status_code=404, detail="No data found!")
+
+
+@ab_api.get("/simulations/all")
+async def get_all_simulation_dist(
+    client: AsyncIOMotorClient = Depends(get_odm),
+):
+    engine = AIOEngine(motor_client=client, database="autobracket")
+    data = [dist.doc() async for dist in engine.find(SimulationDist)]
+
+    if data:
+        return data
+    else:
+        raise HTTPException(status_code=404, detail="No data found!")
+
+
 @ab_api.get("/stats/{season}/all")
 async def get_season_players(
     season: FantasyDataSeason,
