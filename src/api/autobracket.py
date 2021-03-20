@@ -190,6 +190,118 @@ async def get_all_simulation_dist(
         raise HTTPException(status_code=404, detail="No data found!")
 
 
+@ab_api.get("/performance/game")
+async def bracket_checker_by_game(
+    client: AsyncIOMotorClient = Depends(get_odm),
+):
+    """Function to check the model's performance for all brackets."""
+    engine = AIOEngine(motor_client=client, database="autobracket")
+    data = [
+        dist.doc()
+        async for dist in engine.find(SimulatedBracket)
+    ]
+
+    if not data:
+        raise HTTPException(status_code=404, detail="No data found!")
+
+    actual_df = pd.read_csv(
+        pathlib.Path("src/db/matchup_results_2021.csv"),
+        index_col="game_id",
+    ).convert_dtypes()
+
+    bracket_data = [doc.get('bracket') for doc in data]
+
+    results_dict = {}
+
+    for node in range(1, 67):
+        # identify real and simulated winner
+        real_winner = actual_df.at[node, 'real_winner']
+        sim_winners = [bracket.get(f"{node:02}") for bracket in bracket_data]
+        # count how many right out of the full list!
+        percent_correct = (
+            sim_winners.count(real_winner)
+            / len(sim_winners)
+        )
+        away_team = actual_df.at[node, "away_key"]
+        home_team = actual_df.at[node, "home_key"]
+        results_dict[f"{away_team} vs. {home_team}"] = percent_correct
+        print("okay")
+
+    return results_dict
+
+
+@ab_api.get("/performance/bracket")
+async def bracket_checker_by_bracket(
+    client: AsyncIOMotorClient = Depends(get_odm),
+):
+    """Function to check the model's performance for all brackets."""
+    engine = AIOEngine(motor_client=client, database="autobracket")
+    data = [
+        dist.doc()
+        async for dist in engine.find(SimulatedBracket)
+    ]
+
+    if not data:
+        raise HTTPException(status_code=404, detail="No data found!")
+
+    actual_df = pd.read_csv(
+        pathlib.Path("src/db/matchup_results_2021.csv"),
+        index_col="game_id",
+    ).convert_dtypes()
+
+    real_winners = actual_df.real_winner.to_dict()
+
+    results_array = []
+
+    for doc in data:
+        bracket_id = str(doc.get('_id'))
+        flavor = doc.get('flavor')
+        bracket = doc.get('bracket')
+        games_correct = 0
+        for key in bracket.keys():
+            if (bracket[key] == real_winners[int(key)]):
+                games_correct += 1
+        results_array.append({
+            '_id': bracket_id,
+            'flavor': flavor,
+            'games_correct': games_correct,
+        })
+
+    return results_array
+
+
+@ab_api.get("/performance/game/{node}")
+async def game_checker(
+    node: int = Path(..., ge=1, le=67),
+    client: AsyncIOMotorClient = Depends(get_odm),
+):
+    """Function to check the model's performance for a single node in the bracket."""
+    engine = AIOEngine(motor_client=client, database="autobracket")
+    data = [
+        dist.doc().get('bracket').get(f"{node:02}")
+        async for dist in engine.find(SimulatedBracket)
+    ]
+
+    if not data:
+        raise HTTPException(status_code=404, detail="No data found!")
+
+    actual_df = pd.read_csv(
+        pathlib.Path("src/db/matchup_results_2021.csv"),
+        index_col="game_id",
+    ).convert_dtypes()
+
+    # identify winner
+    real_winner = actual_df.at[node, 'real_winner']
+
+    # count how many right out of the list!
+    percent_correct = (
+        data.count(real_winner)
+        / len(data)
+    )
+
+    return percent_correct
+
+
 @ab_api.get("/stats/{season}/all")
 async def get_season_players(
     season: FantasyDataSeason,
@@ -530,7 +642,8 @@ async def single_sim_bracket(
     # save bracket to DB for later analysis
     bracket_teams = bracket_df[['sim_winner']].to_dict()["sim_winner"]
     bracket = { f"{key:02}":team for key, team in bracket_teams.items() }
-    await engine.save(SimulatedBracket(flavor=flavor, bracket=bracket))
+    # we're done collecting brackets this year!
+    # await engine.save(SimulatedBracket(flavor=flavor, bracket=bracket))
 
     # bracket to JSON
     bracket_json = orjson.loads(
