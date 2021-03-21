@@ -3,22 +3,22 @@ game_id,region,away_seed,away_key,away_school,home_seed,home_key,home_school,adv
 2,First Four,11,MST,Michigan State,11,UCLA,UCLA,17,UCLA
 3,First Four,16,NORFST,Norfolk State,16,APPLST,Appalachian State,5,NORFST
 4,First Four,16,MSTM,Mount St. Mary's,16,TXS,Texas Southern,13,TXS
-5,West,16,NORFST,Norfolk State,1,GNZG,Gonzaga,37,TBD
-6,West,9,MISSR,Missouri,8,OKL,Oklahoma,37,TBD
-7,West,12,USCB,UC Santa Barbara,5,CREIGH,Creighton,38,TBD
-8,West,13,OHIO,Ohio,4,VIR,Virginia,38,TBD
-9,West,11,DRAKE,Drake,6,USC,USC,39,TBD
-10,West,14,EWASH,Eastern Washington,3,KAN,Kansas,39,TBD
-11,West,10,VCU,VCU,7,ORE,Oregon,40,TBD
-12,West,15,GCAN,Grand Canyon,2,IOWA,Iowa,40,TBD
-13,East,16,TXS,Texas Southern,1,MICH,Michigan,41,TBD
-14,East,9,STBON,St. Bonaventure,8,LSU,LSU,41,TBD
-15,East,12,GEORGE,Georgetown,5,COL,Colorado,42,TBD
-16,East,13,NCG,UNCG,4,FLST,Florida State,42,TBD
-17,East,11,UCLA,UCLA,6,BYU,BYU,43,TBD
-18,East,14,ABCHR,Abilene Christian,3,TX,Texas,43,TBD
-19,East,10,MARY,Maryland,7,UCONN,Connecticut,44,TBD
-20,East,15,IONA,Iona,2,ALA,Alabama,44,TBD
+5,West,16,NORFST,Norfolk State,1,GNZG,Gonzaga,37,GNZG
+6,West,9,MISSR,Missouri,8,OKL,Oklahoma,37,OKL
+7,West,12,USCB,UC Santa Barbara,5,CREIGH,Creighton,38,CREIGH
+8,West,13,OHIO,Ohio,4,VIR,Virginia,38,OHIO
+9,West,11,DRAKE,Drake,6,USC,USC,39,USC
+10,West,14,EWASH,Eastern Washington,3,KAN,Kansas,39,KAN
+11,West,10,VCU,VCU,7,ORE,Oregon,40,ORE
+12,West,15,GCAN,Grand Canyon,2,IOWA,Iowa,40,IOWA
+13,East,16,TXS,Texas Southern,1,MICH,Michigan,41,MICH
+14,East,9,STBON,St. Bonaventure,8,LSU,LSU,41,LSU
+15,East,12,GEORGE,Georgetown,5,COL,Colorado,42,COL
+16,East,13,NCG,UNCG,4,FLST,Florida State,42,FLST
+17,East,11,UCLA,UCLA,6,BYU,BYU,43,UCLA
+18,East,14,ABCHR,Abilene Christian,3,TX,Texas,43,ABCHR
+19,East,10,MARY,Maryland,7,UCONN,Connecticut,44,MARY
+20,East,15,IONA,Iona,2,ALA,Alabama,44,ALA
 21,South,16,HARTFD,Hartford,1,BAYL,Baylor,45,BAYL
 22,South,9,WISC,Wisconsin,8,NCAR,North Carolina,45,WISC
 23,South,12,WINTH,Winthrop,5,VILL,Villanova,46,VILL
@@ -35,14 +35,14 @@ game_id,region,away_seed,away_key,away_school,home_seed,home_key,home_school,adv
 34,Midwest,14,MHST,Morehead State,3,WVIR,West Virginia,51,WVIR
 35,Midwest,10,RUTGER,Rutgers,7,CLMSN,Clemson,52,RUTGER
 36,Midwest,15,CLVST,Cleveland State,2,HOU,Houston,52,HOU
-37,West,TBD,TBD,TBD,TBD,TBD,TBD,53,TBD
-38,West,TBD,TBD,TBD,TBD,TBD,TBD,53,TBD
-39,West,TBD,TBD,TBD,TBD,TBD,TBD,54,TBD
-40,West,TBD,TBD,TBD,TBD,TBD,TBD,54,TBD
-41,East,TBD,TBD,TBD,TBD,TBD,TBD,55,TBD
-42,East,TBD,TBD,TBD,TBD,TBD,TBD,55,TBD
-43,East,TBD,TBD,TBD,TBD,TBD,TBD,56,TBD
-44,East,TBD,TBD,TBD,TBD,TBD,TBD,56,TBD
+37,West,1,GNZG,Gonzaga,8,OKL,Oklahoma,53,TBD
+38,West,5,CREIGH,Creighton,13,OHIO,Ohio,53,TBD
+39,West,6,USC,USC,3,KAN,Kansas,54,TBD
+40,West,7,ORE,Oregon,2,IOWA,Iowa,54,TBD
+41,East,1,MICH,Michigan,8,LSU,LSU,55,TBD
+42,East,5,COL,Colorado,4,FLST,Florida State,55,TBD
+43,East,11,UCLA,UCLA,14,ABCHR,Abilene Christian,56,TBD
+44,East,10,RUTGER,Rutgers,2,ALA,Alabama,56,TBD
 45,South,1,BAYL,Baylor,9,WISC,Wisconsin,57,TBD
 46,South,5,VILL,Villanova,13,NTX,North Texas,57,TBD
 47,South,6,TXTECH,Texas Tech,3,ARK,Arkansas,58,TBD
