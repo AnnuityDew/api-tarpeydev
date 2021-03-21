@@ -210,22 +210,34 @@ async def bracket_checker_by_game(
     ).convert_dtypes()
 
     bracket_data = [doc.get('bracket') for doc in data]
+    vanilla_data = [doc.get('bracket') for doc in data if doc.get('flavor') == BracketFlavor.NONE]
+    mild_data = [doc.get('bracket') for doc in data if doc.get('flavor') == BracketFlavor.MILD]
+    medium_data = [doc.get('bracket') for doc in data if doc.get('flavor') == BracketFlavor.MEDIUM]
+    max_data = [doc.get('bracket') for doc in data if doc.get('flavor') == BracketFlavor.MAX]
 
     results_dict = {}
+    flavor_dict = {}
 
-    for node in range(1, 67):
-        # identify real and simulated winner
-        real_winner = actual_df.at[node, 'real_winner']
-        sim_winners = [bracket.get(f"{node:02}") for bracket in bracket_data]
-        # count how many right out of the full list!
-        percent_correct = (
-            sim_winners.count(real_winner)
-            / len(sim_winners)
-        )
-        away_team = actual_df.at[node, "away_key"]
-        home_team = actual_df.at[node, "home_key"]
-        results_dict[f"{away_team} vs. {home_team}"] = percent_correct
-        print("okay")
+    for flavor_data in [
+        (bracket_data, 'all'),
+        (vanilla_data, 'Vanilla'),
+        (mild_data, 'Mild'),
+        (medium_data, 'Medium'),
+        (max_data, 'MAX SPICE'),
+    ]:
+        for node in range(1, 67):
+            # identify real and simulated winner
+            real_winner = actual_df.at[node, 'real_winner']
+            sim_winners = [bracket.get(f"{node:02}") for bracket in flavor_data[0]]
+            # count how many right out of the full list!
+            percent_correct = (
+                sim_winners.count(real_winner)
+                / len(sim_winners)
+            )
+            away_team = actual_df.at[node, "away_key"]
+            home_team = actual_df.at[node, "home_key"]
+            flavor_dict[f"{away_team} vs. {home_team}"] = percent_correct
+        results_dict[flavor_data[1]] = flavor_dict
 
     return results_dict
 
