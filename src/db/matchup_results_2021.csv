@@ -35,30 +35,30 @@ game_id,region,away_seed,away_key,away_school,home_seed,home_key,home_school,adv
 34,Midwest,14,MHST,Morehead State,3,WVIR,West Virginia,51,WVIR
 35,Midwest,10,RUTGER,Rutgers,7,CLMSN,Clemson,52,RUTGER
 36,Midwest,15,CLVST,Cleveland State,2,HOU,Houston,52,HOU
-37,West,1,GNZG,Gonzaga,8,OKL,Oklahoma,53,TBD
-38,West,5,CREIGH,Creighton,13,OHIO,Ohio,53,TBD
-39,West,6,USC,USC,3,KAN,Kansas,54,TBD
-40,West,7,ORE,Oregon,2,IOWA,Iowa,54,TBD
-41,East,1,MICH,Michigan,8,LSU,LSU,55,TBD
-42,East,5,COL,Colorado,4,FLST,Florida State,55,TBD
-43,East,11,UCLA,UCLA,14,ABCHR,Abilene Christian,56,TBD
-44,East,10,RUTGER,Rutgers,2,ALA,Alabama,56,TBD
-45,South,1,BAYL,Baylor,9,WISC,Wisconsin,57,TBD
-46,South,5,VILL,Villanova,13,NTX,North Texas,57,TBD
-47,South,6,TXTECH,Texas Tech,3,ARK,Arkansas,58,TBD
-48,South,7,FL,Florida,15,ORAL,Oral Roberts,58,TBD
-49,Midwest,1,ILL,Illinois,8,LOYCH,Loyola Chicago,59,TBD
-50,Midwest,12,OREGST,Oregon State,4,OKST,Oklahoma State,59,TBD
-51,Midwest,11,SYRA,Syracuse,3,WVIR,West Virginia,60,TBD
-52,Midwest,10,RUTGER,Rutgers,2,HOU,Houston,60,TBD
-53,West,TBD,TBD,TBD,TBD,TBD,TBD,61,TBD
-54,West,TBD,TBD,TBD,TBD,TBD,TBD,61,TBD
-55,East,TBD,TBD,TBD,TBD,TBD,TBD,62,TBD
-56,East,TBD,TBD,TBD,TBD,TBD,TBD,62,TBD
-57,South,TBD,TBD,TBD,TBD,TBD,TBD,63,TBD
-58,South,TBD,TBD,TBD,TBD,TBD,TBD,63,TBD
-59,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,64,TBD
-60,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,64,TBD
+37,West,1,GNZG,Gonzaga,8,OKL,Oklahoma,53,GNZG
+38,West,5,CREIGH,Creighton,13,OHIO,Ohio,53,CREIGH
+39,West,6,USC,USC,3,KAN,Kansas,54,USC
+40,West,7,ORE,Oregon,2,IOWA,Iowa,54,ORE
+41,East,1,MICH,Michigan,8,LSU,LSU,55,MICH
+42,East,5,COL,Colorado,4,FLST,Florida State,55,FLST
+43,East,11,UCLA,UCLA,14,ABCHR,Abilene Christian,56,UCLA
+44,East,10,RUTGER,Rutgers,2,ALA,Alabama,56,ALA
+45,South,1,BAYL,Baylor,9,WISC,Wisconsin,57,BAYL
+46,South,5,VILL,Villanova,13,NTX,North Texas,57,VILL
+47,South,6,TXTECH,Texas Tech,3,ARK,Arkansas,58,ARK
+48,South,7,FL,Florida,15,ORAL,Oral Roberts,58,ORAL
+49,Midwest,1,ILL,Illinois,8,LOYCH,Loyola Chicago,59,LOYCH
+50,Midwest,12,OREGST,Oregon State,4,OKST,Oklahoma State,59,OREGST
+51,Midwest,11,SYRA,Syracuse,3,WVIR,West Virginia,60,SYRA
+52,Midwest,10,RUTGER,Rutgers,2,HOU,Houston,60,HOU
+53,West,1,GNZG,Gonzaga,5,CREIGH,Creighton,61,TBD
+54,West,6,USC,USC,7,ORE,Oregon,61,TBD
+55,East,1,MICH,Michigan,4,FLST,Florida State,62,TBD
+56,East,11,UCLA,UCLA,2,ALA,Alabama,62,TBD
+57,South,1,BAYL,Baylor,5,VILL,Villanova,63,TBD
+58,South,3,ARK,Arkansas,15,ORAL,Oral Roberts,63,TBD
+59,Midwest,8,LOYCH,Loyola Chicago,12,OREGST,Oregon State,64,TBD
+60,Midwest,11,SYRA,Syracuse,2,HOU,Houston,64,TBD
 61,West,TBD,TBD,TBD,TBD,TBD,TBD,65,TBD
 62,East,TBD,TBD,TBD,TBD,TBD,TBD,65,TBD
 63,South,TBD,TBD,TBD,TBD,TBD,TBD,66,TBD
