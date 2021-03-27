@@ -219,7 +219,7 @@ async def bracket_checker_by_game(
     flavor_dict = {}
 
     for flavor_data in [
-        (bracket_data, 'all'),
+        (bracket_data, 'All'),
         (vanilla_data, 'Vanilla'),
         (mild_data, 'Mild'),
         (medium_data, 'Medium'),
