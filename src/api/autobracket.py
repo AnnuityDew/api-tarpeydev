@@ -237,7 +237,7 @@ async def bracket_checker_by_game(
             away_team = actual_df.at[node, "away_key"]
             home_team = actual_df.at[node, "home_key"]
             flavor_dict[f"{away_team} vs. {home_team}"] = percent_correct
-        results_dict[flavor_data[1]] = flavor_dict
+        results_dict[flavor_data[1]] = flavor_dict.copy()
 
     return results_dict
 
