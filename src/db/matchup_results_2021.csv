@@ -51,18 +51,18 @@ game_id,region,away_seed,away_key,away_school,home_seed,home_key,home_school,adv
 50,Midwest,12,OREGST,Oregon State,4,OKST,Oklahoma State,59,OREGST
 51,Midwest,11,SYRA,Syracuse,3,WVIR,West Virginia,60,SYRA
 52,Midwest,10,RUTGER,Rutgers,2,HOU,Houston,60,HOU
-53,West,1,GNZG,Gonzaga,5,CREIGH,Creighton,61,TBD
-54,West,6,USC,USC,7,ORE,Oregon,61,TBD
-55,East,1,MICH,Michigan,4,FLST,Florida State,62,TBD
-56,East,11,UCLA,UCLA,2,ALA,Alabama,62,TBD
-57,South,1,BAYL,Baylor,5,VILL,Villanova,63,TBD
-58,South,3,ARK,Arkansas,15,ORAL,Oral Roberts,63,TBD
-59,Midwest,8,LOYCH,Loyola Chicago,12,OREGST,Oregon State,64,TBD
-60,Midwest,11,SYRA,Syracuse,2,HOU,Houston,64,TBD
-61,West,TBD,TBD,TBD,TBD,TBD,TBD,65,TBD
-62,East,TBD,TBD,TBD,TBD,TBD,TBD,65,TBD
-63,South,TBD,TBD,TBD,TBD,TBD,TBD,66,TBD
-64,Midwest,TBD,TBD,TBD,TBD,TBD,TBD,66,TBD
-65,Final Four,TBD,TBD,TBD,TBD,TBD,TBD,67,TBD
-66,Final Four,TBD,TBD,TBD,TBD,TBD,TBD,67,TBD
-67,Championship,TBD,TBD,TBD,TBD,TBD,TBD,68,TBD
+53,West,1,GNZG,Gonzaga,5,CREIGH,Creighton,61,GNZG
+54,West,6,USC,USC,7,ORE,Oregon,61,USC
+55,East,1,MICH,Michigan,4,FLST,Florida State,62,MICH
+56,East,11,UCLA,UCLA,2,ALA,Alabama,62,UCLA
+57,South,1,BAYL,Baylor,5,VILL,Villanova,63,BAYL
+58,South,3,ARK,Arkansas,15,ORAL,Oral Roberts,63,ARK
+59,Midwest,8,LOYCH,Loyola Chicago,12,OREGST,Oregon State,64,OREGST
+60,Midwest,11,SYRA,Syracuse,2,HOU,Houston,64,HOU
+61,West,1,GNZG,Gonzaga,6,USC,USC,65,GNZG
+62,East,1,MICH,Michigan,11,UCLA,UCLA,65,UCLA
+63,South,1,BAYL,Baylor,3,ARK,Arkansas,66,BAYL
+64,Midwest,12,OREGST,Oregon State,2,HOU,Houston,66,HOU
+65,Final Four,1,GNZG,Gonzaga,11,UCLA,UCLA,67,GNZG
+66,Final Four,1,BAYL,Baylor,3,ARK,Arkansas,67,BAYL
+67,Championship,1,GNZG,Gonzaga,1,BAYL,Baylor,68,TBD
