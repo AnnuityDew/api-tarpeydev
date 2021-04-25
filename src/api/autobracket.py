@@ -225,7 +225,7 @@ async def bracket_checker_by_game(
         (medium_data, 'Medium'),
         (max_data, 'MAX SPICE'),
     ]:
-        for node in range(1, 67):
+        for node in range(1, 68):
             # identify real and simulated winner
             real_winner = actual_df.at[node, 'real_winner']
             sim_winners = [bracket.get(f"{node:02}") for bracket in flavor_data[0]]

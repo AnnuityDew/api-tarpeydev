@@ -64,5 +64,5 @@ game_id,region,away_seed,away_key,away_school,home_seed,home_key,home_school,adv
 63,South,1,BAYL,Baylor,3,ARK,Arkansas,66,BAYL
 64,Midwest,12,OREGST,Oregon State,2,HOU,Houston,66,HOU
 65,Final Four,1,GNZG,Gonzaga,11,UCLA,UCLA,67,GNZG
-66,Final Four,1,BAYL,Baylor,3,ARK,Arkansas,67,BAYL
-67,Championship,1,GNZG,Gonzaga,1,BAYL,Baylor,68,TBD
+66,Final Four,1,BAYL,Baylor,2,HOU,Houston,67,BAYL
+67,Championship,1,GNZG,Gonzaga,1,BAYL,Baylor,68,BAYL
