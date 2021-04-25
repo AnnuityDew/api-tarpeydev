@@ -1,8 +1,11 @@
 # import third party packages
+import sqlalchemy
+from sqlalchemy import create_engine
 from motor.motor_asyncio import AsyncIOMotorClient
 
 # import custom local stuff
 from instance.config import MONGO_CONNECT
+from src.db.sqlite import engine_object
 from src.db.atlas import atlas_object
 
 
@@ -22,3 +25,12 @@ async def motor_startup():
 async def motor_shutdown():
     """Shutdown the motor client at app shutdown."""
     atlas_object.client.close()
+
+
+async def sqlite_startup():
+    """Startup a SQLAlchemy engine at app startup."""
+    engine_object.engine = create_engine("sqlite+pysqlite:///db.sqlite", echo=True, future=True)
+
+
+async def sqlite_shutdown():
+    return
