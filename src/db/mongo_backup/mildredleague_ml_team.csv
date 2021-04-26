@@ -1,0 +1,105 @@
+,_id,active,division,full_name,nick_name,playoff_rank,season
+0,5ff7d3528d6504e575e117ed,True,East Coast Bias,Michael Tarpey,Tarpey,1,2013
+1,5ff7d4368d6504e575e117f1,False,West Whatever,Neel Reddy,Neel,3,2013
+2,5ff7d4368d6504e575e117f2,True,East Coast Bias,Brandon Dilbeck,Brando,4,2013
+3,5ff7d4368d6504e575e11818,False,East Coast Bias,Benjamin Everette,Ben,6,2016
+4,5ff7d4368d6504e575e11819,True,East Coast Bias,Kyle Fontimayor,Fonti,7,2016
+5,5ff7d4368d6504e575e117f3,False,West Whatever,D. Stonerock Bradford,Debbie,5,2013
+6,5ff7d4368d6504e575e11800,True,West Whatever,Mildred Kinley,Mildred,8,2014
+7,5ff7d4368d6504e575e117fe,True,East Coast Bias,Michael Tarpey,Tarpey,6,2014
+8,5ff7d4368d6504e575e117fd,False,East Coast Bias,Stephanie Neupert,Stephanie,5,2014
+9,5ff7d4368d6504e575e117fb,True,East Coast Bias,Jeff Sendzik,Sendzik,3,2014
+10,5ff7d4368d6504e575e117f5,True,East Coast Bias,Mildred Kinley,Mildred,7,2013
+11,5ff7d4368d6504e575e11814,True,West Whatever,DJ Conti,Conti,2,2016
+12,5ff7d4368d6504e575e117f8,False,West Whatever,Bryant Sexbang,Bryant,10,2013
+13,5ff7d4368d6504e575e117f0,False,West Whatever,Christian Costa,Christian,2,2013
+14,5ff7d4368d6504e575e1181a,True,East Coast Bias,Matt Kindy,Kindy,8,2016
+15,5ff7d4368d6504e575e11805,True,West Whatever,Kyle Fontimayor,Fonti,1,2015
+16,5ff7d4368d6504e575e1181b,True,West Whatever,Jeff Sendzik,Sendzik,9,2016
+17,5ff7d4368d6504e575e1181c,True,East Coast Bias,tommy pfifferling,Tommy,10,2016
+18,5ff7d4368d6504e575e117f7,True,West Whatever,Tommy Pfifferling,Tommy,9,2013
+19,5ff7d4368d6504e575e1180d,False,West Whatever,Matthew Debski,Debski,9,2015
+20,5ff7d4368d6504e575e1181e,True,West Whatever,Michael Tarpey,Tarpey,12,2016
+21,5ff7d4368d6504e575e1181f,True,Champions,Kyle Fontimayor,Fonti,1,2017
+22,5ff7d4368d6504e575e1181d,True,East Coast Bias,Mildred Kinley,Mildred,11,2016
+23,5ff7d4368d6504e575e117f9,True,West Whatever,Brandon Dilbeck,Brando,1,2014
+24,5ff7d4368d6504e575e11806,True,West Whatever,Samik Das,Samik,2,2015
+25,5ff7d4368d6504e575e11815,True,West Whatever,Brandon Dilbeck,Brando,3,2016
+26,5ff7d4368d6504e575e11820,True,Referees,Charles Wilson,Charles,2,2017
+27,5ff7d4368d6504e575e11824,True,AFC East,DJ Conti,Conti,6,2017
+28,5ff7d4368d6504e575e11825,True,Champions,Michael Tarpey,Tarpey,7,2017
+29,5ff7d4368d6504e575e11826,True,AFC East,Samik Das,Samik,8,2017
+30,5ff7d4368d6504e575e11827,True,AFC East,Jake Casado,Jake,9,2017
+31,5ff7d4368d6504e575e11823,True,Referees,Michael Allen,mballen,5,2017
+32,5ff7d4368d6504e575e11821,True,AFC East,Jeff Sendzik,Sendzik,3,2017
+33,5ff7d4368d6504e575e11822,True,Champions,Brandon Dilbeck,Brando,4,2017
+34,5ff7d4368d6504e575e11813,True,East Coast Bias,frank arguello,Frank,1,2016
+35,5ff7d4368d6504e575e117fa,True,East Coast Bias,Matt Kindy,Kindy,2,2014
+36,5ff7d4368d6504e575e11828,False,Referees,Benjamin Everette,Ben,10,2017
+37,5ff7d4368d6504e575e11802,False,West Whatever,Arthur Neupert,Arthur,10,2014
+38,5ff7d4368d6504e575e11810,True,East Coast Bias,Michael Tarpey,Tarpey,12,2015
+39,5ff7d4368d6504e575e11807,True,East Coast Bias,DJ Conti,Conti,3,2015
+40,5ff7d4368d6504e575e1180a,True,West Whatever,Jeff Sendzik,Sendzik,6,2015
+41,5ff7d4368d6504e575e1182f,True,AFC East,Samik Das,Samik,4,2018
+42,5ff7d4368d6504e575e1182c,True,Referees,Mildred Kinley,Mildred,14,2017
+43,5ff7d4368d6504e575e11830,True,AFC East,Jeff Sendzik,Sendzik,3,2018
+44,5ff7d4368d6504e575e1182b,True,Referees,tommy pfifferling,Tommy,13,2017
+45,5ff7d4368d6504e575e1182a,True,AFC East,Matt Kindy,Kindy,12,2017
+46,5ff7d4368d6504e575e1182d,True,Champions,Michael Tarpey,Tarpey,1,2018
+47,5ff7d4368d6504e575e11829,True,Champions,frank arguello,Frank,11,2017
+48,5ff7d4368d6504e575e1182e,True,AFC East,DJ Conti,Conti,2,2018
+49,5ff7d4368d6504e575e11831,True,Referees,Charles Wilson,Charles,6,2018
+50,5ff7d4368d6504e575e11832,True,Referees,Michael Allen,mballen,5,2018
+51,5ff7d4368d6504e575e1183d,True,AFC East,DJ Conti,Conti,3,2019
+52,5ff7d4368d6504e575e1183c,True,Champions,frank arguello,Frank,2,2019
+53,5ff7d4368d6504e575e1183b,True,AFC East,Jeff Sendzik,Sendzik,1,2019
+54,5ff7d4368d6504e575e1183a,False,Referees,Benjamin Everette,Ben,14,2018
+55,5ff7d4368d6504e575e11839,True,Referees,tommy pfifferling,Tommy,12,2018
+56,5ff7d4368d6504e575e11836,True,AFC East,Jake Casado,Jake,11,2018
+57,5ff7d4368d6504e575e11838,True,Referees,Mildred Kinley,Mildred,13,2018
+58,5ff7d4368d6504e575e11834,True,Champions,Kyle Fontimayor,Fonti,9,2018
+59,5ff7d4368d6504e575e11835,True,Champions,Brandon Dilbeck,Brando,8,2018
+60,5ff7d4368d6504e575e11833,True,Champions,frank arguello,Frank,7,2018
+61,5ff7d4368d6504e575e1183e,True,Champions,Michael Tarpey,Tarpey,4,2019
+62,5ff7d4368d6504e575e11837,True,AFC East,Matt Kindy,Kindy,10,2018
+63,5ff7d4368d6504e575e11840,True,AFC East,Jake Casado,Jake,6,2019
+64,5ff7d4368d6504e575e1180e,True,East Coast Bias,Matt Kindy,Kindy,10,2015
+65,5ff7d4368d6504e575e1180b,True,West Whatever,Mildred Kinley,Mildred,7,2015
+66,5ff7d4368d6504e575e117f4,False,East Coast Bias,Danny Rinehart,Danny,6,2013
+67,5ff7d4368d6504e575e11809,True,East Coast Bias,Brandon Dilbeck,Brando,5,2015
+68,5ff7d4368d6504e575e117fc,True,East Coast Bias,Samik Das,Samik,4,2014
+69,5ff7d4368d6504e575e11811,False,East Coast Bias,patrick bell,Patrick,13,2015
+70,5ff7d4368d6504e575e11808,True,West Whatever,frank arguello,Frank,4,2015
+71,5ff7d4368d6504e575e11812,True,West Whatever,tommy pfifferling,Tommy,14,2015
+72,5ff7d4368d6504e575e117ff,False,West Whatever,Matthew Debski,Debski,7,2014
+73,5ff7d4368d6504e575e1180c,False,East Coast Bias,Benjamin Everette,Ben,8,2015
+74,5ff7d4368d6504e575e11804,True,West Whatever,DJ Conti,Conti,12,2014
+75,5ff7d4368d6504e575e1180f,True,East Coast Bias,Michael Allen,mballen,11,2015
+76,5ff7d4368d6504e575e11801,False,West Whatever,Benjamin Everette,Ben,9,2014
+77,5ff7d4368d6504e575e11803,True,East Coast Bias,tommy pfifferling,Tommy,11,2014
+78,5ff7d4368d6504e575e117f6,False,East Coast Bias,Hardy Chen,Hardy,8,2013
+79,5ff7d4368d6504e575e11817,True,West Whatever,Michael Allen,mballen,5,2016
+80,5ff7d4368d6504e575e11816,True,West Whatever,Samik Das,Samik,4,2016
+81,5ff7d4368d6504e575e11845,True,Referees,tommy pfifferling,Tommy,11,2019
+82,5ff7d4368d6504e575e11850,True,Division 6,Kyle Fontimayor,Fonti,13,2020
+83,5ff7d4368d6504e575e11855,True,Referees,Charles Wilson,Charles,1,2020
+84,5ff7d4368d6504e575e11852,True,AFC East,Matt Kindy,Kindy,7,2020
+85,5ff7d4368d6504e575e1184b,True,AFC East,DJ Conti,Conti,3,2020
+86,5ff7d4368d6504e575e1184d,True,Referees,Mildred Kinley,Mildred,12,2020
+87,5ff7d4368d6504e575e1184e,True,AFC East,Jake Casado,Jake,6,2020
+88,5ff7d4368d6504e575e1183f,True,Referees,Mildred Kinley,Mildred,5,2019
+89,5ff7d4368d6504e575e11849,True,AFC East,Jeff Sendzik,Sendzik,11,2020
+90,5ff7d4368d6504e575e1184c,True,Division 6,Michael Tarpey,Tarpey,4,2020
+91,5ff7d4368d6504e575e11842,True,Champions,Kyle Fontimayor,Fonti,8,2019
+92,5ff7d4368d6504e575e11847,True,Referees,Charles Wilson,Charles,13,2019
+93,5ff7d4368d6504e575e11841,True,Champions,Brandon Dilbeck,Brando,7,2019
+94,5ff7d4368d6504e575e11844,True,AFC East,Matt Kindy,Kindy,10,2019
+95,5ff7d4368d6504e575e11854,True,Referees,Michael Allen,mballen,5,2020
+96,5ff7d4368d6504e575e1184a,True,Division 6,frank arguello,Frank,2,2020
+97,5ff7d4368d6504e575e11853,True,Referees,tommy pfifferling,Tommy,8,2020
+98,5ff7d4368d6504e575e11856,True,AFC East,Samik Das,Samik,9,2020
+99,5ff7d4368d6504e575e11848,True,AFC East,Samik Das,Samik,14,2019
+100,5ff7d4368d6504e575e11843,True,Referees,Bradley Leer,Brad,9,2019
+101,5ff7d4368d6504e575e1184f,True,Division 6,Brandon Dilbeck,Brando,14,2020
+102,5ff7d4368d6504e575e11851,True,Referees,Bradley Leer,Brad,10,2020
+103,5ff7d4368d6504e575e11846,True,Referees,Michael Allen,mballen,12,2019

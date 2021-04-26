@@ -27,6 +27,7 @@ uvloop = "^0.14.0"
 httptools = "^0.1.1"
 dnspython = "^1.16.0"
 SQLAlchemy = "^1.4.11"
+google-cloud-storage = "^1.37.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"

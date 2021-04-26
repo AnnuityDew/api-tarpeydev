@@ -1,36 +1,23 @@
+from pathlib import Path
+
 # import third party packages
-import sqlalchemy
 from sqlalchemy import create_engine
-from motor.motor_asyncio import AsyncIOMotorClient
+from google.cloud import storage
 
 # import custom local stuff
-from instance.config import MONGO_CONNECT
-from src.db.sqlite import engine_object
-from src.db.atlas import atlas_object
-
-
-async def motor_startup():
-    """Startup a motor client at app startup.
-
-    https://github.com/markqiu/fastapi-mongodb-realworld-example-app/
-    blob/master/app/db/mongodb_utils.py#L10
-    """
-    atlas_object.client = AsyncIOMotorClient(
-        MONGO_CONNECT,
-        # maxPoolSize=15,
-        maxIdleTimeMS=1000*60*3,
-    )
-
-
-async def motor_shutdown():
-    """Shutdown the motor client at app shutdown."""
-    atlas_object.client.close()
+from src.db.alchemy import engine_object
 
 
 async def sqlite_startup():
     """Startup a SQLAlchemy engine at app startup."""
-    engine_object.engine = create_engine("sqlite+pysqlite:///db.sqlite", echo=True, future=True)
+    storage_client = storage.Client()
+    bucket = storage_client.bucket('tarpeydev-sqlite')
+    blob = bucket.blob('db.sqlite')
+    db_folder_path = Path('src/db')
+    db_file_path = db_folder_path / 'db.sqlite'
+    blob.download_to_filename(db_file_path)
+    engine_object.engine = create_engine(f"sqlite+pysqlite:///{db_file_path}", echo=True, future=True)
 
 
 async def sqlite_shutdown():
-    return
+    print("shutdown!")

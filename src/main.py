@@ -15,7 +15,7 @@ from src.api.autobracket import ab_api
 from src.api.haveyouseenx import hysx_api
 from src.api.mildredleague import ml_api
 from src.api.security import security_api, validate_jwt
-from src.db.startup import motor_startup, motor_shutdown
+from src.db.startup import sqlite_startup, sqlite_shutdown
 
 
 def multiproc_context():
@@ -76,8 +76,10 @@ def create_fastapi_app():
 
     # startup and shutdown connection to DB
     # see https://motor.readthedocs.io/en/stable/tutorial-asyncio.html
-    api_app.add_event_handler("startup", motor_startup)
-    api_app.add_event_handler("shutdown", motor_shutdown)
+    api_app.add_event_handler("startup", sqlite_startup)
+    api_app.add_event_handler("shutdown", sqlite_shutdown)
+    # api_app.add_event_handler("startup", motor_startup)
+    # api_app.add_event_handler("shutdown", motor_shutdown)
     # multiprocessing context change that we're no longer using
     # api_app.add_event_handler('startup', multiproc_context)
 
