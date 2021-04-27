@@ -149,3 +149,4 @@ instance/
 # CSVs
 src/db/kenpom_2020.csv
 src/db/kenpom_2021.csv
+src/db/mongo_backup/autobracket_simulation_run.csv
