@@ -22,7 +22,7 @@ from sklearn.cluster import KMeans
 
 # import custom local stuff
 from instance.config import FANTASY_DATA_KEY_CBB, FANTASY_DATA_KEY_FREE
-from src.db.atlas import get_odm
+from src.db.motor import get_odm
 from src.api.apikey import get_api_key
 from src.api.security import validate_jwt
 

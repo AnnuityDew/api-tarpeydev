@@ -13,7 +13,7 @@ import plotly.express as px
 from odmantic import AIOEngine, Model, ObjectId
 
 # import custom local stuff
-from src.db.atlas import get_odm
+from src.db.motor import get_odm
 from src.api.security import validate_jwt
 
 
