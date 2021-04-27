@@ -127,9 +127,6 @@ dmypy.json
 # GCP
 app.yaml
 
-# venv
-.venv
-
 # vscode
 settings.json
 .vscode
@@ -141,6 +138,7 @@ settings.json
 tarpeydev-gcp.json
 source-context.json
 tarpeydev-12771e760bd4.json:Zone.Identifier
+cloud_sql_proxy
 
 # constructed DDR data
 data/ddr/constructed
