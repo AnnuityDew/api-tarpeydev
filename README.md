@@ -24,6 +24,7 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/).
 
 ## Technology Stack
 * Hosted on Google Cloud Run (fully managed)
+* Cloud Build continuous deployment
 * PostgreSQL 13 on Google Cloud SQL
 * Python 3.8+
 * For the frontend stack, [visit the frontend repo](https://github.com/AnnuityDew/next-tarpeydev)
