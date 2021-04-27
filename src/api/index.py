@@ -1,5 +1,6 @@
 # import Python packages
-from typing import List, Optional
+import random
+from typing import List
 
 # import third party packages
 from fastapi import APIRouter, Depends
@@ -7,15 +8,12 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 from sqlalchemy.future import Engine
 from sqlalchemy.orm import Session
-from motor.motor_asyncio import AsyncIOMotorClient
-from pydantic import BaseModel
-from odmantic import AIOEngine, Model, ObjectId
+from sqlalchemy.exc import NoResultFound
 
 # import custom local stuff
-from src.db.alchemy import get_sqlite
-from src.db.motor import get_odm
+from src.db.alchemy import get_alchemy
 from src.api.security import validate_jwt
-from src.db.orm_models import QuoteORM
+from src.db.models import QuoteORM, Quote, QuotePatch
 
 
 index_api = APIRouter(
@@ -25,44 +23,27 @@ index_api = APIRouter(
 )
 
 
-class Quote(BaseModel):
-    id: int
-    quote_text: str
-    quote_origin: str
-
-    # necessary for parsing a SQLAlchemy ORM result
-    class Config:
-        orm_mode = True
-
-
-class QuotePatch(BaseModel):
-    id: int
-    quote_text: Optional[str]
-    quote_origin: Optional[str]
-
-    # necessary for parsing a SQLAlchemy ORM result
-    class Config:
-        orm_mode = True
-
-
 @index_api.get('/quote/random', response_model=Quote)
-async def random_quote(client: AsyncIOMotorClient = Depends(get_odm)):
-    engine = AIOEngine(motor_client=client, database="quotes")
-    collection = engine.get_collection(Quote)
-    # random sample
-    quote = await collection.aggregate([ { '$sample': { 'size': 1 } } ]).to_list(length=1)
-    # convert aggregation list to Quote class
-    quote = Quote(
-        quote_text=quote[0]['quote_text'],
-        quote_origin=quote[0]['quote_origin'],
-    )
-    return quote
+async def random_quote(engine: Engine = Depends(get_alchemy)):
+    """Chooses a random quote from the database to show on the frontpage.
+
+    Currently, this queries the entire table from the database before performing
+    a random selection. We should probably cache the number of quotes in the table
+    and then randomly select based on id.
+
+    """
+    with Session(engine) as session:
+        sql = select(QuoteORM)
+        result = session.execute(sql).scalars().all()
+    
+    if result:
+        return random.choice(result)
+    else:
+        raise HTTPException(status_code=404, detail="No data found!")
 
 
 @index_api.get('/quote/all', response_model=List[Quote])
-async def get_all_quotes(
-    engine: Engine = Depends(get_sqlite),
-):
+async def get_all_quotes(engine: Engine = Depends(get_alchemy)):
     with Session(engine) as session:
         sql = select(QuoteORM)
         result = session.execute(sql).scalars().all()
@@ -75,62 +56,74 @@ async def get_all_quotes(
 
 @index_api.post('/quote')
 async def add_quotes(
-    doc_list: List[Quote],
-    client: AsyncIOMotorClient = Depends(get_odm),
+    row_list: List[Quote],
+    engine: Engine = Depends(get_alchemy),
 ):
-    engine = AIOEngine(motor_client=client, database="quotes")
-    result = await engine.save_all(doc_list)
+    with Session(engine) as session:
+        for row in row_list:
+            # conversion from Pydantic model to ORM model
+            session.add(QuoteORM(**row.dict()))
+        session.commit()
+
     return {
-        "result": result,
+        "result": row_list,
     }
 
 
-@index_api.get('/quote/{oid}', response_model=Quote)
+@index_api.get('/quote/{id}', response_model=Quote)
 async def get_quote(
-    oid: ObjectId,
-    client: AsyncIOMotorClient = Depends(get_odm),
+    id: int,
+    engine: Engine = Depends(get_alchemy),
 ):
-    engine = AIOEngine(motor_client=client, database="quotes")
-    quote = await engine.find_one(Quote, Quote.id == oid)
-    if quote:
-        return quote
-    else:
-        raise HTTPException(status_code=404, detail="No data found!")
+    with Session(engine) as session:
+        sql = select(QuoteORM).where(QuoteORM.id == id)
+        # one returns a Row object, which is a named tuple.
+        # using scalar_one to access the object directly instead.
+        try:
+            result = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
+
+    return result
 
 
-@index_api.patch('/quote/{oid}')
+@index_api.patch('/quote/{id}')
 async def edit_quote(
-    oid: ObjectId,
+    id: int,
     patch: QuotePatch,
-    client: AsyncIOMotorClient = Depends(get_odm),
+    engine: Engine = Depends(get_alchemy),
 ):
-    engine = AIOEngine(motor_client=client, database="quotes")
-    quote = await engine.find_one(Quote, Quote.id == oid)
-    if quote is None:
-        raise HTTPException(status_code=404, detail="No data found!")
+    with Session(engine) as session:
+        sql = select(QuoteORM).where(QuoteORM.id == id)
+        # one returns a Row object, which is a named tuple.
+        # using scalar_one to access the object directly instead.
+        try:
+            result = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
 
-    patch_dict = patch.dict(exclude_unset=True)
-    for attr, value in patch_dict.items():
-        setattr(quote, attr, value)
-    result = await engine.save(quote)
+        patch_dict = patch.dict(exclude_unset=True)
+        for attr, value in patch_dict.items():
+            setattr(result, attr, value)
+        session.commit()
 
     return {
-        "result": result,
+        "result": patch,
     }
 
 
-@index_api.delete('/quote/{oid}')
+@index_api.delete('/quote/{id}')
 async def delete_quote(
-    oid: ObjectId,
-    client: AsyncIOMotorClient = Depends(get_odm),
+    id: int,
+    engine: Engine = Depends(get_alchemy),
 ):
-    engine = AIOEngine(motor_client=client, database="quotes")
-    quote = await engine.find_one(Quote, Quote.id == oid)
-    if quote is None:
-        raise HTTPException(status_code=404, detail="No data found!")
-
-    await engine.delete(quote)
+    with Session(engine) as session:
+        deletion = session.get(QuoteORM, id)
+        if deletion is None:
+            raise HTTPException(status_code=404, detail="No data found!")
+        session.delete(deletion)
+        session.commit()
 
     return {
-        "quote": quote,
+        "result": deletion,
     }

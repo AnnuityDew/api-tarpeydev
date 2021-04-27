@@ -9,5 +9,5 @@ class SQLiteEngine():
 engine_object = SQLiteEngine()
 
 
-async def get_sqlite():
+async def get_alchemy():
     return engine_object.engine
