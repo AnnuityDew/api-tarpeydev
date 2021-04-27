@@ -16,14 +16,15 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/).
 
 ## Key Packages
 * Built with [FastAPI](https://fastapi.tiangolo.com)
-* [ODMantic](https://github.com/art049/odmantic) (async ODM for MongoDB, based on Motor. Enabled painless integration with FastAPI and pydantic!)
+* [SQLAlchemy]
+* [dotenv]
 * [orjson](https://github.com/ijl/orjson) (speedier and gave me less trouble when working with JSON)
 * [Pandas](https://pandas.pydata.org) and [NumPy](https://numpy.org)
 * [Okta JWT](https://pypi.org/project/okta-jwt/) (for securing some endpoints)
 
 ## Technology Stack
 * Hosted on Google Cloud Run (fully managed)
-* MongoDB Atlas Free Tier
+* PostgreSQL 13 on Google Cloud SQL
 * Python 3.8+
 * For the frontend stack, [visit the frontend repo](https://github.com/AnnuityDew/next-tarpeydev)
 
@@ -56,3 +57,6 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/).
   * [How are possessions counted in basketball?](https://www.reddit.com/r/nba/comments/5oe4go/how_are_possessions_counted_in_basketball/)
   * [Statistical Analysis Primer](https://www.nba.com/thunder/news/stats101.html)
   * [Exponential Distributions](https://online.stat.psu.edu/stat414/lesson/15/15.1)
+* Cloud SQL setup:
+  * [Quickstart for using the Cloud SQL Auth proxy](https://cloud.google.com/sql/docs/postgres/quickstart-proxy-test)
+  * [Connecting from Cloud Run (fully managed) to Cloud SQL](https://cloud.google.com/sql/docs/postgres/connect-run)

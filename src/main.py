@@ -7,15 +7,15 @@ from fastapi.responses import ORJSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
 # import custom local stuff
-from instance.config import GCP_FILE
 from src.api.index import index_api
 from src.api.autobracket import ab_api
-from src.api.haveyouseenx import hysx_api
+# from src.api.haveyouseenx import hysx_api
 from src.api.mildredleague import ml_api
 from src.api.security import security_api, validate_jwt
-from src.db.startup import sqlite_startup, sqlite_shutdown
+from src.db.startup import alchemy_startup, alchemy_shutdown
 
 
 def multiproc_context():
@@ -25,6 +25,9 @@ def multiproc_context():
 
 
 def create_fastapi_app():
+    # load .env environment variables
+    load_dotenv()
+
     api_app = FastAPI(
         title="tarpey.dev API",
         description="API for Mike Tarpey's app sandbox.",
@@ -76,8 +79,8 @@ def create_fastapi_app():
 
     # startup and shutdown connection to DB
     # see https://motor.readthedocs.io/en/stable/tutorial-asyncio.html
-    api_app.add_event_handler("startup", sqlite_startup)
-    api_app.add_event_handler("shutdown", sqlite_shutdown)
+    api_app.add_event_handler("startup", alchemy_startup)
+    api_app.add_event_handler("shutdown", alchemy_shutdown)
     # api_app.add_event_handler("startup", motor_startup)
     # api_app.add_event_handler("shutdown", motor_shutdown)
     # multiprocessing context change that we're no longer using
@@ -86,7 +89,7 @@ def create_fastapi_app():
     # include subrouters of the FastAPI app
     api_app.include_router(index_api)
     api_app.include_router(ab_api)
-    api_app.include_router(hysx_api)
+    # api_app.include_router(hysx_api)
     api_app.include_router(ml_api)
     api_app.include_router(security_api)
 
