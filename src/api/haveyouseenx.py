@@ -14,7 +14,8 @@ import plotly.express as px
 from odmantic import AIOEngine, Model, ObjectId, query
 
 # import custom local stuff
-from src.db.atlas import get_odm
+from src.db.motor import get_odm
+from src.db.models import BacklogGame
 from src.api.security import validate_jwt
 
 
@@ -23,62 +24,6 @@ hysx_api = APIRouter(
     tags=["haveyouseenx"],
     dependencies=[Depends(validate_jwt)],
 )
-
-
-class YesNo(str, Enum):
-    YES = "Y"
-    NO = "N"
-
-
-class GameStatus(str, Enum):
-    NOT_STARTED = "Not Started"
-    STARTED = "Started"
-    BEATEN = "Beaten"
-    COMPLETED = "Completed"
-    MASTERED = "Mastered"
-    INFINITE = "Infinite"
-    WISH_LIST = "Wish List"
-
-
-class PlaytimeCalc(str, Enum):
-    ACTUAL = "Actual"
-    ESTIMATE = "Estimate"
-
-
-class BacklogGame(Model):
-    game_title: str
-    sub_title: Optional[str]
-    game_system: str
-    genre: str
-    dlc: YesNo
-    now_playing: YesNo
-    game_status: GameStatus
-    game_hours: Optional[int]
-    game_minutes: Optional[int]
-    playtime_calc: Optional[PlaytimeCalc]
-    add_date: Optional[datetime]
-    start_date: Optional[datetime]
-    beat_date: Optional[datetime]
-    complete_date: Optional[datetime]
-    game_notes: Optional[str]
-
-
-class BacklogGamePatch(Model):
-    game_title: Optional[str]
-    sub_title: Optional[str]
-    game_system: Optional[str]
-    genre: Optional[str]
-    dlc: Optional[YesNo]
-    now_playing: Optional[YesNo]
-    game_status: Optional[GameStatus]
-    game_hours: Optional[int]
-    game_minutes: Optional[int]
-    playtime_calc: Optional[PlaytimeCalc]
-    add_date: Optional[datetime]
-    start_date: Optional[datetime]
-    beat_date: Optional[datetime]
-    complete_date: Optional[datetime]
-    game_notes: Optional[str]
 
 
 @hysx_api.get('/annuitydew/game/all')
@@ -119,11 +64,11 @@ async def get_game(
 @hysx_api.patch('/annuitydew/game/{oid}')
 async def edit_game(
     oid: ObjectId,
-    patch: BacklogGamePatch,
+    patch: BacklogGame,
     client: AsyncIOMotorClient = Depends(get_odm),
 ):
     engine = AIOEngine(motor_client=client, database="backlogs")
-    game = await engine.find_one(BacklogGamePatch, BacklogGamePatch.id == oid)
+    game = await engine.find_one(BacklogGame, BacklogGame.id == oid)
     if game is None:
         raise HTTPException(status_code=404, detail="No data found!")
 
