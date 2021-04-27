@@ -1,8 +1,7 @@
 # import native Python packages
-from enum import Enum, IntEnum
 from itertools import permutations, product
 import json
-from typing import List, Dict, Optional
+from typing import List
 
 # import third party packages
 from fastapi import APIRouter, HTTPException, Depends
@@ -10,11 +9,23 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import pandas
 import plotly
 import plotly.express as px
-from odmantic import AIOEngine, Model, ObjectId
+from odmantic import AIOEngine, ObjectId
 
 # import custom local stuff
 from src.db.motor import get_odm
 from src.api.security import validate_jwt
+from src.db.models import (
+    MLTeam,
+    MLTeamPatch,
+    MLGame,
+    MLGamePatch,
+    MLNote,
+    MLNotePatch,
+    MLSeason,
+    MLPlayoff,
+    MLBoxplotTransform,
+    MLTableTransform,
+)
 
 
 ml_api = APIRouter(
@@ -22,124 +33,6 @@ ml_api = APIRouter(
     tags=["mildredleague"],
     dependencies=[Depends(validate_jwt)],
 )
-
-
-class Against(str, Enum):
-    AGAINST = "against"
-    FOR = "for"
-
-
-class NickName(str, Enum):
-    TARPEY = "Tarpey"
-    CHRISTIAN = "Christian"
-    NEEL = "Neel"
-    BRANDO = "Brando"
-    DEBBIE = "Debbie"
-    DANNY = "Danny"
-    MILDRED = "Mildred"
-    HARDY = "Hardy"
-    TOMMY = "Tommy"
-    BRYANT = "Bryant"
-    KINDY = "Kindy"
-    SENDZIK = "Sendzik"
-    SAMIK = "Samik"
-    STEPHANIE = "Stephanie"
-    DEBSKI = "Debski"
-    BEN = "Ben"
-    ARTHUR = "Arthur"
-    CONTI = "Conti"
-    FONTI = "Fonti"
-    FRANK = "Frank"
-    MIKE = "mballen"
-    PATRICK = "Patrick"
-    CHARLES = "Charles"
-    JAKE = "Jake"
-    BRAD = "Brad"
-    BYE = "Bye"
-
-
-class MLSeason(IntEnum):
-    SEASON1 = 2013
-    SEASON2 = 2014
-    SEASON3 = 2015
-    SEASON4 = 2016
-    SEASON5 = 2017
-    SEASON6 = 2018
-    SEASON7 = 2019
-    SEASON8 = 2020
-
-
-class MLPlayoff(IntEnum):
-    REGULAR = 0
-    PLAYOFF = 1
-    LOSERS = 2
-
-
-class MLGame(Model):
-    away: str
-    a_nick: NickName
-    a_score: float
-    home: str
-    h_nick: NickName
-    h_score: float
-    week_s: int
-    week_e: int
-    season: MLSeason
-    playoff: MLPlayoff
-
-
-class MLGamePatch(Model):
-    away: Optional[str]
-    a_nick: Optional[NickName]
-    a_score: Optional[float]
-    home: Optional[str]
-    h_nick: Optional[NickName]
-    h_score: Optional[float]
-    week_s: Optional[int]
-    week_e: Optional[int]
-    season: Optional[MLSeason]
-    playoff: Optional[MLPlayoff]
-
-
-class MLTeam(Model):
-    division: str
-    full_name: str
-    nick_name: NickName
-    season: MLSeason
-    playoff_rank: int
-    active: bool
-
-
-class MLTeamPatch(Model):
-    division: Optional[str]
-    full_name: Optional[str]
-    nick_name: Optional[NickName]
-    season: Optional[MLSeason]
-    playoff_rank: Optional[int]
-    active: Optional[bool]
-
-
-class MLNote(Model):
-    season: MLSeason
-    note: str
-
-
-class MLNotePatch(Model):
-    season: Optional[MLSeason]
-    note: Optional[str]
-
-
-class MLTableTransform(Model):
-    season: MLSeason
-    playoff: MLPlayoff
-    columns: List
-    data: List
-
-
-class MLBoxplotTransform(Model):
-    season: MLSeason
-    for_data: Dict
-    against_data: Dict
 
 
 class MLTable(pandas.DataFrame):
@@ -647,10 +540,7 @@ async def get_season_notes(
     client: AsyncIOMotorClient = Depends(get_odm),
 ):
     engine = AIOEngine(motor_client=client, database="mildredleague")
-    data = [
-        note
-        async for note in engine.find(MLNote, sort=MLNote.id)
-    ]
+    data = [note async for note in engine.find(MLNote, sort=MLNote.id)]
     if data:
         return data
     else:
@@ -968,7 +858,9 @@ async def season_boxplot_transform(
     score_df = pandas.concat([score_df_for, score_df_against])
     # let's sort by playoff rank instead
     # read season file, but we only need nick_name, season, and playoff_rank
-    ranking_df = pandas.DataFrame([team.doc() for team in season_teams_data])[["nick_name", "playoff_rank"]]
+    ranking_df = pandas.DataFrame([team.doc() for team in season_teams_data])[
+        ["nick_name", "playoff_rank"]
+    ]
     # merge this (filtered by season) into score_df so we can sort values
     score_df = score_df.merge(
         ranking_df,
@@ -1029,16 +921,16 @@ async def season_boxplot_transform(
         )
     ]
     if old_chart_data == [new_chart_data]:
-        message = (
-            "Collection is already synced! Collection: " + str(new_chart_data.season)
+        message = "Collection is already synced! Collection: " + str(
+            new_chart_data.season
         )
     else:
         # if boxplots need to be recalculated, just wipe the collection and reinsert
         for chart in old_chart_data:
             await engine.delete(chart)
         await engine.save(new_chart_data)
-        message = (
-            "Bulk delete and insert complete! Collection: " + str(new_chart_data.season)
+        message = "Bulk delete and insert complete! Collection: " + str(
+            new_chart_data.season
         )
 
     return message
@@ -1053,7 +945,9 @@ async def season_table_transform(
 ):
     # convert to pandas DataFrame and normalize
     games_df = MLTable([game.doc() for game in season_games_subset_data])
-    teams_df = pandas.DataFrame([team.doc() for team in season_teams_data]).set_index("_id")
+    teams_df = pandas.DataFrame([team.doc() for team in season_teams_data]).set_index(
+        "_id"
+    )
     if playoff > 0:
         if playoff == 2:
             # for loser's bracket, sort by games played ascending first,
@@ -1171,8 +1065,8 @@ async def season_table_transform(
     new_table_data = MLTableTransform(
         season=season,
         playoff=playoff,
-        columns=new_table_data['columns'],
-        data=new_table_data['data'],
+        columns=new_table_data["columns"],
+        data=new_table_data["data"],
     )
 
     # write data to MongoDB
@@ -1187,7 +1081,9 @@ async def season_table_transform(
     ]
     if old_table_data == [new_table_data]:
         message = (
-            "Collection is already synced! Collection: " + str(new_table_data.season) + str(new_table_data.playoff)
+            "Collection is already synced! Collection: "
+            + str(new_table_data.season)
+            + str(new_table_data.playoff)
         )
     else:
         # if tables need to be recalculated, just wipe the collection and reinsert
@@ -1195,7 +1091,9 @@ async def season_table_transform(
             await engine.delete(table)
         await engine.save(new_table_data)
         message = (
-            "Bulk delete and insert complete! Collection: " + str(new_table_data.season) + str(new_table_data.playoff)
+            "Bulk delete and insert complete! Collection: "
+            + str(new_table_data.season)
+            + str(new_table_data.playoff)
         )
 
     return message

@@ -1,10 +1,8 @@
 # import native Python packages
 from datetime import date
-from enum import Enum
 from math import floor
 import multiprocessing
 import pathlib
-from typing import Dict
 from odmantic.bson import ObjectId
 from odmantic.model import EmbeddedModel
 import orjson
@@ -15,7 +13,7 @@ from fastapi import APIRouter, HTTPException, Depends, Path
 from motor.motor_asyncio import AsyncIOMotorClient
 import numpy as np
 import pandas as pd
-from odmantic import AIOEngine, Field, Model, query
+from odmantic import AIOEngine, query
 import requests
 from scipy import stats
 from sklearn.cluster import KMeans
@@ -24,7 +22,7 @@ from sklearn.cluster import KMeans
 from instance.config import FANTASY_DATA_KEY_CBB, FANTASY_DATA_KEY_FREE
 from src.db.motor import get_odm
 from src.api.apikey import get_api_key
-from src.api.security import validate_jwt
+from src.db.models import FantasyDataSeason, BracketFlavor
 
 
 ab_api = APIRouter(
@@ -32,121 +30,6 @@ ab_api = APIRouter(
     tags=["autobracket"],
     # dependencies=[Depends(validate_jwt)],
 )
-
-
-class FantasyDataSeason(str, Enum):
-    PRIORSEASON1 = "2020"
-    CURRENTSEASON = "2021"
-
-
-class BracketFlavor(str, Enum):
-    NONE = "none"
-    MILD = "mild"
-    MEDIUM = "medium"
-    MAX = "max"
-
-
-class CBBTeam(Model):
-    SeasonTeamID: str = Field(primary_field=True)
-    Key: str
-    School: str
-    Name: str
-    GlobalTeamID: int
-    Conference: str
-    TeamLogoUrl: str
-    ShortDisplayName: str
-    Stadium: Dict
-    Season: str
-    Rk: int
-    Conf: str
-    W: int
-    L: int
-    AdjEM: float
-    AdjO: float
-    AdjD: float
-    AdjT: float
-    Luck: float
-    OppAdjEM: float
-    OppO: float
-    OppD: float
-    NCAdjEM: float
-
-
-class PlayerSeason(Model):
-    StatID: int = Field(primary_field=True)
-    TeamID: int
-    PlayerID: int
-    SeasonType: int
-    Season: str
-    Name: str
-    Team: str
-    Position: str
-    Games: int
-    FantasyPoints: float
-    Minutes: int
-    FieldGoalsMade: int
-    FieldGoalsAttempted: int
-    FieldGoalsPercentage: float
-    TwoPointersMade: int
-    TwoPointersAttempted: int
-    ThreePointersMade: int
-    ThreePointersAttempted: int
-    FreeThrowsMade: int
-    FreeThrowsAttempted: int
-    OffensiveRebounds: int
-    DefensiveRebounds: int
-    Rebounds: int
-    Assists: int
-    Steals: int
-    BlockedShots: int
-    Turnovers: int
-    PersonalFouls: int
-    Points: int
-    FantasyPointsFanDuel: float
-    FantasyPointsDraftKings: float
-    two_attempt_chance: float
-    two_chance: float
-    three_chance: float
-    ft_chance: float
-
-
-class GameSummary(EmbeddedModel):
-    season: str
-    away_key: str
-    home_key: str
-    neutral_site: bool
-    home_margin: int
-    total_possessions: int
-
-
-class SimulationRun(Model):
-    game_summary: GameSummary
-    team_box_score: Dict
-    full_box_score: Dict
-
-
-class SimulationDist(Model):
-    away_key: str
-    home_key: str
-    season: str
-    home_win_chance_max: float
-    max_margin_top: int
-    max_margin_bottom: int
-    home_win_chance_medium: float
-    medium_margin_top: int
-    medium_margin_bottom: int
-    home_win_chance_mild: float
-    mild_margin_top: int
-    mild_margin_bottom: int
-    home_win_chance_median: float
-    median_margin_top: int
-    median_margin_bottom: int
-    median_margin: int
-
-
-class SimulatedBracket(Model):
-    flavor: BracketFlavor
-    bracket: Dict
 
 
 @ab_api.get("/simulations/all/{away_key}/{home_key}")

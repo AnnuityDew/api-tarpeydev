@@ -1,4 +1,4 @@
-,_id,a_nick,a_score,away,h_nick,h_score,home,playoff,season,week_e,week_s
+,_id,away_nick,away_score,away,home_nick,home_score,home,playoff,season,week_end,week_start
 0,5ff7dac2c8ee41edffd6155b,Danny,122.0,HTTR RGSkins,Mildred,126.0,Mildred's Redskins,0,2013,1,1
 1,5ff7dac2c8ee41edffd61563,Debbie,66.0,Team Stonerock Bradford,Danny,98.0,HTTR RGSkins,0,2013,3,3
 2,5ff7dac2c8ee41edffd61581,Neel,75.0,Team Reddy,Hardy,64.0,Can't Get It Up,0,2013,9,9
