@@ -1,4 +1,4 @@
-,_id,add_date,beat_date,complete_date,dlc,game_hours,game_minutes,game_notes,game_status,game_system,game_title,genre,now_playing,playtime_calc,start_date,sub_title
+,_id,add_date,beat_date,complete_date,dlc,game_hours,game_minutes,game_notes,game_status,game_system,game_title,genre,now_playing,actual_playtime,start_date,sub_title
 0,6007bab2a5cefca6c9947da4,,,,Y,,,,Beaten,360,Call of Duty: Black Ops,FPS,N,,,First Strike
 1,6007bab2a5cefca6c9947dc9,,,,Y,,,,Completed,PS4,DRIVECLUB,Racing,N,,,Sakura
 2,6007bab2a5cefca6c9947da8,,,,Y,,,,Completed,360,DiRT 3,Racing,N,,,Mud and Guts Car Pack
