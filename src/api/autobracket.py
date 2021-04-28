@@ -22,7 +22,15 @@ from sklearn.cluster import KMeans
 # import custom local stuff
 from src.db.motor import get_odm
 from src.api.apikey import get_api_key
-from src.db.models import FantasyDataSeason, BracketFlavor
+from src.db.models import (
+    FantasyDataSeason,
+    BracketFlavor,
+    SimulationDist,
+    SimulatedBracket,
+    PlayerSeason,
+    SimulationRun,
+    CBBTeam,
+)
 
 
 FANTASY_DATA_KEY_CBB = os.getenv("FANTASY_DATA_KEY_CBB")
@@ -48,12 +56,12 @@ async def get_one_simulation_dist(
         async for dist in engine.find(
             SimulationDist,
             (
-                (SimulationDist.away_key == away_key) &
-                (SimulationDist.home_key == home_key)
-            ) |
-            (
-                (SimulationDist.away_key == home_key) &
-                (SimulationDist.home_key == away_key)
+                (SimulationDist.away_key == away_key)
+                & (SimulationDist.home_key == home_key)
+            )
+            | (
+                (SimulationDist.away_key == home_key)
+                & (SimulationDist.home_key == away_key)
             ),
         )
     ]
@@ -83,10 +91,7 @@ async def bracket_checker_by_game(
 ):
     """Function to check the model's performance for all brackets."""
     engine = AIOEngine(motor_client=client, database="autobracket")
-    data = [
-        dist.doc()
-        async for dist in engine.find(SimulatedBracket)
-    ]
+    data = [dist.doc() async for dist in engine.find(SimulatedBracket)]
 
     if not data:
         raise HTTPException(status_code=404, detail="No data found!")
@@ -96,31 +101,36 @@ async def bracket_checker_by_game(
         index_col="game_id",
     ).convert_dtypes()
 
-    bracket_data = [doc.get('bracket') for doc in data]
-    vanilla_data = [doc.get('bracket') for doc in data if doc.get('flavor') == BracketFlavor.NONE]
-    mild_data = [doc.get('bracket') for doc in data if doc.get('flavor') == BracketFlavor.MILD]
-    medium_data = [doc.get('bracket') for doc in data if doc.get('flavor') == BracketFlavor.MEDIUM]
-    max_data = [doc.get('bracket') for doc in data if doc.get('flavor') == BracketFlavor.MAX]
+    bracket_data = [doc.get("bracket") for doc in data]
+    vanilla_data = [
+        doc.get("bracket") for doc in data if doc.get("flavor") == BracketFlavor.NONE
+    ]
+    mild_data = [
+        doc.get("bracket") for doc in data if doc.get("flavor") == BracketFlavor.MILD
+    ]
+    medium_data = [
+        doc.get("bracket") for doc in data if doc.get("flavor") == BracketFlavor.MEDIUM
+    ]
+    max_data = [
+        doc.get("bracket") for doc in data if doc.get("flavor") == BracketFlavor.MAX
+    ]
 
     results_dict = {}
     flavor_dict = {}
 
     for flavor_data in [
-        (bracket_data, 'All'),
-        (vanilla_data, 'Vanilla'),
-        (mild_data, 'Mild'),
-        (medium_data, 'Medium'),
-        (max_data, 'MAX SPICE'),
+        (bracket_data, "All"),
+        (vanilla_data, "Vanilla"),
+        (mild_data, "Mild"),
+        (medium_data, "Medium"),
+        (max_data, "MAX SPICE"),
     ]:
         for node in range(1, 68):
             # identify real and simulated winner
-            real_winner = actual_df.at[node, 'real_winner']
+            real_winner = actual_df.at[node, "real_winner"]
             sim_winners = [bracket.get(f"{node:02}") for bracket in flavor_data[0]]
             # count how many right out of the full list!
-            percent_correct = (
-                sim_winners.count(real_winner)
-                / len(sim_winners)
-            )
+            percent_correct = sim_winners.count(real_winner) / len(sim_winners)
             away_team = actual_df.at[node, "away_key"]
             home_team = actual_df.at[node, "home_key"]
             flavor_dict[f"{away_team} vs. {home_team}"] = percent_correct
@@ -135,10 +145,7 @@ async def bracket_checker_by_bracket(
 ):
     """Function to check the model's performance for all brackets."""
     engine = AIOEngine(motor_client=client, database="autobracket")
-    data = [
-        dist.doc()
-        async for dist in engine.find(SimulatedBracket)
-    ]
+    data = [dist.doc() async for dist in engine.find(SimulatedBracket)]
 
     if not data:
         raise HTTPException(status_code=404, detail="No data found!")
@@ -153,18 +160,20 @@ async def bracket_checker_by_bracket(
     results_array = []
 
     for doc in data:
-        bracket_id = str(doc.get('_id'))
-        flavor = doc.get('flavor')
-        bracket = doc.get('bracket')
+        bracket_id = str(doc.get("_id"))
+        flavor = doc.get("flavor")
+        bracket = doc.get("bracket")
         games_correct = 0
         for key in bracket.keys():
-            if (bracket[key] == real_winners[int(key)]):
+            if bracket[key] == real_winners[int(key)]:
                 games_correct += 1
-        results_array.append({
-            '_id': bracket_id,
-            'flavor': flavor,
-            'games_correct': games_correct,
-        })
+        results_array.append(
+            {
+                "_id": bracket_id,
+                "flavor": flavor,
+                "games_correct": games_correct,
+            }
+        )
 
     return results_array
 
@@ -177,7 +186,7 @@ async def game_checker(
     """Function to check the model's performance for a single node in the bracket."""
     engine = AIOEngine(motor_client=client, database="autobracket")
     data = [
-        dist.doc().get('bracket').get(f"{node:02}")
+        dist.doc().get("bracket").get(f"{node:02}")
         async for dist in engine.find(SimulatedBracket)
     ]
 
@@ -190,13 +199,10 @@ async def game_checker(
     ).convert_dtypes()
 
     # identify winner
-    real_winner = actual_df.at[node, 'real_winner']
+    real_winner = actual_df.at[node, "real_winner"]
 
     # count how many right out of the list!
-    percent_correct = (
-        data.count(real_winner)
-        / len(data)
-    )
+    percent_correct = data.count(real_winner) / len(data)
 
     return percent_correct
 
@@ -537,10 +543,10 @@ async def single_sim_bracket(
         how="left",
     )
     bracket_df.update(bracket_df_reversed)
-    
+
     # save bracket to DB for later analysis
-    bracket_teams = bracket_df[['sim_winner']].to_dict()["sim_winner"]
-    bracket = { f"{key:02}":team for key, team in bracket_teams.items() }
+    bracket_teams = bracket_df[["sim_winner"]].to_dict()["sim_winner"]
+    bracket = {f"{key:02}": team for key, team in bracket_teams.items()}
     # we're done collecting brackets this year!
     # await engine.save(SimulatedBracket(flavor=flavor, bracket=bracket))
 
