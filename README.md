@@ -24,6 +24,7 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/).
 
 ## Technology Stack
 * Hosted on Google Cloud Run (fully managed)
+* Cloud Build continuous deployment
 * PostgreSQL 13 on Google Cloud SQL
 * Python 3.8+
 * For the frontend stack, [visit the frontend repo](https://github.com/AnnuityDew/next-tarpeydev)
@@ -60,3 +61,4 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/).
 * Cloud SQL setup:
   * [Quickstart for using the Cloud SQL Auth proxy](https://cloud.google.com/sql/docs/postgres/quickstart-proxy-test)
   * [Connecting from Cloud Run (fully managed) to Cloud SQL](https://cloud.google.com/sql/docs/postgres/connect-run)
+  * https://superuser.com/questions/458875/how-do-you-get-loopback-addresses-other-than-127-0-0-1-to-work-on-os-x
