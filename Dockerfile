@@ -1,5 +1,6 @@
 # FastAPI optimized
 # https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker
+# poetry export -f requirements.txt --output requirements.txt --without-hashes
 FROM python:3.8
 ENV APP_HOME /app
 WORKDIR ${APP_HOME}
