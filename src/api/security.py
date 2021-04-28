@@ -7,7 +7,10 @@ import httpx
 from okta_jwt.jwt import validate_token as validate_locally
 from starlette.status import HTTP_401_UNAUTHORIZED
 
-from instance.config import OKTA_AUDIENCE, OKTA_CLIENT_ID, OKTA_ISSUER
+
+OKTA_AUDIENCE = os.getenv("OKTA_AUDIENCE")
+OKTA_CLIENT_ID = os.getenv("OKTA_CLIENT_ID")
+OKTA_ISSUER = os.getenv("OKTA_ISSUER")
 
 
 security_api = APIRouter(

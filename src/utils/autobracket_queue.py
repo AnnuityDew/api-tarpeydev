@@ -1,19 +1,19 @@
 """These files are meant to run locally when necessary, not on the web."""
-
+import os
 from itertools import combinations
 import pandas as pd
 import pathlib
 from google.cloud import tasks_v2
-from instance.config import (
-    GCP_LOCATION,
-    GCP_MM_QUEUE,
-    GCP_PROJECT,
-    GCP_QUEUE_SA_EMAIL,
-    OKTA_ENCODED_ID_SECRET,
-    API_KEY_NAME,
-    API_KEY,
-)
 import requests
+
+
+GCP_LOCATION = os.getenv("GCP_LOCATION")
+GCP_MM_QUEUE = os.getenv("GCP_MM_QUEUE")
+GCP_PROJECT = os.getenv("GCP_PROJECT")
+GCP_QUEUE_SA_EMAIL = os.getenv("GCP_QUEUE_SA_EMAIL")
+OKTA_ENCODED_ID_SECRET = os.getenv("OKTA_ENCODED_ID_SECRET")
+API_KEY_NAME = os.getenv("API_KEY_NAME")
+API_KEY = os.getenv("API_KEY")
 
 
 def simulate_all_matchups():
