@@ -1,5 +1,6 @@
 # import native Python packages
 import asyncio
+import os
 from datetime import timedelta
 from enum import Enum
 from typing import Optional
@@ -13,10 +14,12 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, Field, validator
 
 # import custom local stuff
-from src.db.atlas import get_odm
-from instance.config import (
-    SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
-)
+from src.db.motor import get_odm
+
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 
 users_api = APIRouter(

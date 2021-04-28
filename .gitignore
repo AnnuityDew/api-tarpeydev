@@ -143,9 +143,6 @@ cloud_sql_proxy
 # constructed DDR data
 data/ddr/constructed
 
-# secret stuff
-instance/
-
 # CSVs
 src/db/kenpom_2020.csv
 src/db/kenpom_2021.csv

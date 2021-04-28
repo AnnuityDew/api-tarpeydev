@@ -1,4 +1,5 @@
 # import native Python packages
+import os
 from datetime import date
 from math import floor
 import multiprocessing
@@ -19,10 +20,13 @@ from scipy import stats
 from sklearn.cluster import KMeans
 
 # import custom local stuff
-from instance.config import FANTASY_DATA_KEY_CBB, FANTASY_DATA_KEY_FREE
 from src.db.motor import get_odm
 from src.api.apikey import get_api_key
 from src.db.models import FantasyDataSeason, BracketFlavor
+
+
+FANTASY_DATA_KEY_CBB = os.getenv("FANTASY_DATA_KEY_CBB")
+FANTASY_DATA_KEY_FREE = os.getenv("FANTASY_DATA_KEY_FREE")
 
 
 ab_api = APIRouter(
