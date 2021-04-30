@@ -1,22 +1,22 @@
 # import Python packages
-from datetime import datetime
-from enum import Enum
 import json
-from typing import List, Optional
+from typing import List
 
 # import third party packages
 from fastapi import APIRouter, Depends, HTTPException
-from motor.motor_asyncio import AsyncIOMotorClient
 import numpy
 import pandas
 import plotly
 import plotly.express as px
-from odmantic import AIOEngine, Model, ObjectId, query
+from sqlalchemy import select
+from sqlalchemy.future import Engine
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import NoResultFound
 
 # import custom local stuff
-from src.db.motor import get_odm
-from src.db.models import BacklogGame
 from src.api.security import validate_jwt
+from src.db.alchemy import get_alchemy
+from src.db.models import BacklogGameORM, BacklogGame, BacklogGame
 
 
 hysx_api = APIRouter(
@@ -27,80 +27,94 @@ hysx_api = APIRouter(
 
 
 @hysx_api.get('/annuitydew/game/all')
-async def get_all_games(client: AsyncIOMotorClient = Depends(get_odm)):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    data = [game async for game in engine.find(BacklogGame, sort=BacklogGame.id)]
-    if data:
-        return data
+async def get_all_games(engine: Engine = Depends(get_alchemy)):
+    with Session(engine) as session:
+        sql = select(BacklogGameORM)
+        result = session.execute(sql).scalars().all()
+
+    if result:
+        return result
     else:
         raise HTTPException(status_code=404, detail="No data found!")
 
 
 @hysx_api.post('/annuitydew/game')
 async def add_games(
-    doc_list: List[BacklogGame],
-    client: AsyncIOMotorClient = Depends(get_odm),
+    row_list: List[BacklogGame],
+    engine: Engine = Depends(get_alchemy),
 ):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    result = await engine.save_all(doc_list)
+    with Session(engine) as session:
+        for row in row_list:
+            # conversion from Pydantic model to ORM model
+            session.add(BacklogGameORM(**row.dict()))
+        session.commit()
+
     return {
-        "result": result,
+        "result": row_list,
     }
 
 
-@hysx_api.get('/annuitydew/game/{oid}', response_model=BacklogGame)
+@hysx_api.get('/annuitydew/game/{id}', response_model=BacklogGame)
 async def get_game(
-    oid: ObjectId,
-    client: AsyncIOMotorClient = Depends(get_odm),
+    id: int,
+    engine: Engine = Depends(get_alchemy),
 ):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    game = await engine.find_one(BacklogGame, BacklogGame.id == oid)
-    if game:
-        return game
-    else:
-        raise HTTPException(status_code=404, detail="No data found!")
+    with Session(engine) as session:
+        sql = select(BacklogGameORM).where(BacklogGameORM.id == id)
+        # one returns a Row object, which is a named tuple.
+        # using scalar_one to access the object directly instead.
+        try:
+            result = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
+
+    return result
 
 
-@hysx_api.patch('/annuitydew/game/{oid}')
+@hysx_api.patch('/annuitydew/game/{id}')
 async def edit_game(
-    oid: ObjectId,
+    id: int,
     patch: BacklogGame,
-    client: AsyncIOMotorClient = Depends(get_odm),
+    engine: Engine = Depends(get_alchemy),
 ):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    game = await engine.find_one(BacklogGame, BacklogGame.id == oid)
-    if game is None:
-        raise HTTPException(status_code=404, detail="No data found!")
+    with Session(engine) as session:
+        sql = select(BacklogGameORM).where(BacklogGameORM.id == id)
+        # one returns a Row object, which is a named tuple.
+        # using scalar_one to access the object directly instead.
+        try:
+            result = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
 
-    patch_dict = patch.dict(exclude_unset=True)
-    for attr, value in patch_dict.items():
-        setattr(game, attr, value)
-    result = await engine.save(game)
+        patch_dict = patch.dict(exclude_unset=True)
+        for attr, value in patch_dict.items():
+            setattr(result, attr, value)
+        session.commit()
 
     return {
-        "result": result,
+        "result": patch,
     }
 
 
-@hysx_api.delete('/annuitydew/game/{oid}')
+@hysx_api.delete('/annuitydew/game/{id}')
 async def delete_game(
-    oid: ObjectId,
-    client: AsyncIOMotorClient = Depends(get_odm),
+    id: int,
+    engine: Engine = Depends(get_alchemy),
 ):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    game = await engine.find_one(BacklogGame, BacklogGame.id == oid)
-    if game is None:
-        raise HTTPException(status_code=404, detail="No data found!")
-
-    await engine.delete(game)
+    with Session(engine) as session:
+        deletion = session.get(BacklogGameORM, id)
+        if deletion is None:
+            raise HTTPException(status_code=404, detail="No data found!")
+        session.delete(deletion)
+        session.commit()
 
     return {
-        "game": game,
+        "result": deletion,
     }
 
 
 @hysx_api.get('/annuitydew/stats/counts')
-async def count_by_status(client: AsyncIOMotorClient = Depends(get_odm)):
+async def count_by_status(engine: Engine = Depends(get_alchemy)):
     engine = AIOEngine(motor_client=client, database="backlogs")
     collection = engine.get_collection(BacklogGame)
     results = await collection.aggregate([{
@@ -118,7 +132,7 @@ async def count_by_status(client: AsyncIOMotorClient = Depends(get_odm)):
 
 
 @hysx_api.get('/annuitydew/stats/playtime')
-async def playtime(client: AsyncIOMotorClient = Depends(get_odm)):
+async def playtime(engine: Engine = Depends(get_alchemy)):
     engine = AIOEngine(motor_client=client, database="backlogs")
     collection = engine.get_collection(BacklogGame)
     results = await collection.aggregate([{
@@ -143,7 +157,7 @@ async def playtime(client: AsyncIOMotorClient = Depends(get_odm)):
 
 @hysx_api.get('/annuitydew/search', response_model=List[BacklogGame])
 async def search(
-    client: AsyncIOMotorClient = Depends(get_odm),
+    engine: Engine = Depends(get_alchemy),
     dlc: YesNo = None,
     now_playing: YesNo = None,
     game_status: GameStatus = None,
