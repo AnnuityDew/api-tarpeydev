@@ -3,7 +3,7 @@ import json
 from typing import List
 
 # import third party packages
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 import numpy
 import pandas
 import plotly
@@ -12,17 +12,17 @@ from sqlalchemy import select
 from sqlalchemy.future import Engine
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.sql import func
 
 # import custom local stuff
 from src.api.security import validate_jwt
 from src.db.alchemy import get_alchemy
-from src.db.models import BacklogGameORM, BacklogGame, BacklogGame
+from src.db.models import BacklogGameORM, BacklogGame, BacklogGame, BacklogGamePatch
 
 
 hysx_api = APIRouter(
     prefix="/haveyouseenx",
     tags=["haveyouseenx"],
-    dependencies=[Depends(validate_jwt)],
 )
 
 
@@ -38,7 +38,7 @@ async def get_all_games(engine: Engine = Depends(get_alchemy)):
         raise HTTPException(status_code=404, detail="No data found!")
 
 
-@hysx_api.post('/annuitydew/game')
+@hysx_api.post('/annuitydew/game', dependencies=[Depends(validate_jwt)])
 async def add_games(
     row_list: List[BacklogGame],
     engine: Engine = Depends(get_alchemy),
@@ -71,10 +71,10 @@ async def get_game(
     return result
 
 
-@hysx_api.patch('/annuitydew/game/{id}')
+@hysx_api.patch('/annuitydew/game/{id}', dependencies=[Depends(validate_jwt)])
 async def edit_game(
     id: int,
-    patch: BacklogGame,
+    patch: BacklogGamePatch,
     engine: Engine = Depends(get_alchemy),
 ):
     with Session(engine) as session:
@@ -90,13 +90,14 @@ async def edit_game(
         for attr, value in patch_dict.items():
             setattr(result, attr, value)
         session.commit()
+        session.refresh(result)
 
     return {
-        "result": patch,
+        "result": result,
     }
 
 
-@hysx_api.delete('/annuitydew/game/{id}')
+@hysx_api.delete('/annuitydew/game/{id}', dependencies=[Depends(validate_jwt)])
 async def delete_game(
     id: int,
     engine: Engine = Depends(get_alchemy),
@@ -115,92 +116,50 @@ async def delete_game(
 
 @hysx_api.get('/annuitydew/stats/counts')
 async def count_by_status(engine: Engine = Depends(get_alchemy)):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    collection = engine.get_collection(BacklogGame)
-    results = await collection.aggregate([{
-        '$group': {
-            '_id': '$game_status',
-            'count': {
-                '$sum': 1
-            }
-        }
-    }]).to_list(length=None)
+    with Session(engine) as session:
+        try:
+            results = session.query(
+                BacklogGameORM.game_status,
+                func.count(BacklogGameORM.game_status)
+            ).group_by(BacklogGameORM.game_status).all()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
 
-    stats = {result.get('_id'): result.get('count') for result in results}
+
+    stats = {result[0]: result[1] for result in results}
     sorted_stats = dict(sorted(stats.items(), key=lambda item: item[1], reverse=True))
     return sorted_stats
 
 
 @hysx_api.get('/annuitydew/stats/playtime')
 async def playtime(engine: Engine = Depends(get_alchemy)):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    collection = engine.get_collection(BacklogGame)
-    results = await collection.aggregate([{
-        '$group': {
-            '_id': None,
-            'total_hours': {
-                '$sum': '$game_hours'
-            },
-            'total_minutes': {
-                '$sum': '$game_minutes'
-            }
-        }
-    }]).to_list(length=None)
+    with Session(engine) as session:
+        try:
+            results = session.query(
+                func.sum(BacklogGameORM.game_hours),
+                func.sum(BacklogGameORM.game_minutes)
+            ).one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
+
     # move chunks of 60 minutes into the hours count
-    leftover_minutes = results[0].get('total_minutes') % 60
-    hours_to_move = (results[0].get('total_minutes') - leftover_minutes) / 60
-    results[0]['total_hours'] = int(results[0]['total_hours'] + hours_to_move)
-    results[0]['total_minutes'] = int(leftover_minutes)
+    total_hours, total_minutes = results
+    leftover_minutes = total_minutes % 60
+    hours_to_move = (total_minutes - leftover_minutes) / 60
+    total_hours = int(total_hours + hours_to_move)
+    total_minutes = int(leftover_minutes)
 
-    return results[0]
-
-
-@hysx_api.get('/annuitydew/search', response_model=List[BacklogGame])
-async def search(
-    engine: Engine = Depends(get_alchemy),
-    dlc: YesNo = None,
-    now_playing: YesNo = None,
-    game_status: GameStatus = None,
-    q: str = None,
-):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    initial_args = {
-        'dlc': dlc,
-        'now_playing': now_playing,
-        'game_status': game_status,
+    return {
+        "total_hours": total_hours,
+        "total_minutes": total_minutes,
     }
-    final_args = { k:v for k, v in initial_args.items() if v is not None }
-    if final_args:
-        query_expression_list = [
-            (getattr(BacklogGame, key)) == value for key, value in final_args.items()
-        ]
-        combined_query_expression = query.and_(*query_expression_list)
-    else:
-        combined_query_expression = False
-    # change to plain q for OR results. f"\"{q}\"" is an AND search.
-    if combined_query_expression:
-        results = await engine.find(
-            BacklogGame,
-            combined_query_expression,
-            sort=(BacklogGame.dlc, BacklogGame.id),
-        )        
-    elif q == '' or q is None:
-        results = await engine.find(
-            BacklogGame,
-            sort=(BacklogGame.dlc, BacklogGame.id),
-        )
-    else:
-        results = await engine.find(
-            BacklogGame,
-            { '$text': { '$search': f"\"{q}\"" }},
-            sort=(BacklogGame.dlc, BacklogGame.id),
-        )
-
-    return results
 
 
 @hysx_api.get('/annuitydew/treemap')
-async def system_treemap(backlog: List[BacklogGame] = Depends(get_all_games)):
+async def get_system_treemap(engine: Engine = Depends(get_alchemy)):
+
+
+async def pipeline_for_treemap():
     # convert to pandas dataframe
     backlog = pandas.DataFrame([game.doc() for game in backlog])
     # read backlog and create a count column
@@ -249,6 +208,50 @@ async def system_treemap(backlog: List[BacklogGame] = Depends(get_all_games)):
 
     # convert to JSON for the web
     return json.loads(plotly.io.to_json(figure))
+
+
+@hysx_api.get('/annuitydew/search', response_model=List[BacklogGame])
+async def search(
+    engine: Engine = Depends(get_alchemy),
+    dlc: YesNo = None,
+    now_playing: YesNo = None,
+    game_status: GameStatus = None,
+    q: str = None,
+):
+    engine = AIOEngine(motor_client=client, database="backlogs")
+    initial_args = {
+        'dlc': dlc,
+        'now_playing': now_playing,
+        'game_status': game_status,
+    }
+    final_args = { k:v for k, v in initial_args.items() if v is not None }
+    if final_args:
+        query_expression_list = [
+            (getattr(BacklogGame, key)) == value for key, value in final_args.items()
+        ]
+        combined_query_expression = query.and_(*query_expression_list)
+    else:
+        combined_query_expression = False
+    # change to plain q for OR results. f"\"{q}\"" is an AND search.
+    if combined_query_expression:
+        results = await engine.find(
+            BacklogGame,
+            combined_query_expression,
+            sort=(BacklogGame.dlc, BacklogGame.id),
+        )        
+    elif q == '' or q is None:
+        results = await engine.find(
+            BacklogGame,
+            sort=(BacklogGame.dlc, BacklogGame.id),
+        )
+    else:
+        results = await engine.find(
+            BacklogGame,
+            { '$text': { '$search': f"\"{q}\"" }},
+            sort=(BacklogGame.dlc, BacklogGame.id),
+        )
+
+    return results
 
 
 @hysx_api.get('/annuitydew/bubbles')
@@ -449,3 +452,4 @@ async def timeline(
         'x_data_dates': x_data_dates,
         'area_colors': area_colors,
     }
+
