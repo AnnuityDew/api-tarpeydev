@@ -96,6 +96,28 @@ class BacklogGame(BaseModel):
         orm_mode = True
 
 
+class BacklogGamePatch(BaseModel):
+    game_title: Optional[str]
+    sub_title: Optional[str]
+    game_system: Optional[str]
+    genre: Optional[str]
+    dlc: Optional[bool]
+    now_playing: Optional[bool]
+    game_status: Optional[GameStatus]
+    game_hours: Optional[int]
+    game_minutes: Optional[int]
+    actual_playtime: Optional[bool]
+    add_date: Optional[date]
+    start_date: Optional[date]
+    beat_date: Optional[date]
+    complete_date: Optional[date]
+    game_notes: Optional[str]
+
+    # necessary for parsing a SQLAlchemy ORM result
+    class Config:
+        orm_mode = True
+
+
 class Against(str, Enum):
     AGAINST = "against"
     FOR = "for"
