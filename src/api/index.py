@@ -106,9 +106,10 @@ async def edit_quote(
         for attr, value in patch_dict.items():
             setattr(result, attr, value)
         session.commit()
+        session.refresh(result)
 
     return {
-        "result": patch,
+        "result": result,
     }
 
 
