@@ -34,10 +34,13 @@ async def init_from_mongo():
 
     engine = await alchemy_startup()
 
+    # drop all tables first
+    Base.metadata.drop_all(engine)
+
     # creates tables based on class definitions
     Base.metadata.create_all(engine)
 
-    if False:
+    if True:
         with Session(engine) as session, open(
             db_backup_path / "quotes_quote.csv"
         ) as csv_file:
@@ -59,7 +62,7 @@ async def init_from_mongo():
             result = session.execute(sql).scalars().all()
             print(result)
 
-    if False:
+    if True:
         with Session(engine) as session, open(
             db_backup_path / "backlogs_backlog_game.csv"
         ) as csv_file:
@@ -100,7 +103,7 @@ async def init_from_mongo():
             result = session.execute(sql).scalars().all()
             print(result)
 
-    if False:
+    if True:
         with Session(engine) as session, open(
             db_backup_path / "mildredleague_ml_game.csv"
         ) as csv_file:
@@ -164,7 +167,7 @@ async def init_from_mongo():
             result = session.execute(sql).scalars().all()
             print(result)
 
-    if False:
+    if True:
         with Session(engine) as session, open(
             db_backup_path / "mildredleague_ml_note.csv"
         ) as csv_file:
@@ -192,7 +195,7 @@ async def init_from_mongo():
             result = session.execute(sql).scalars().all()
             print(result)
 
-    if False:
+    if True:
         with Session(engine) as session, open(
             db_backup_path / "autobracket_cbb_team.csv"
         ) as csv_file:
@@ -236,7 +239,7 @@ async def init_from_mongo():
             result = session.execute(sql).scalars().all()
             print(result)
 
-    if False:
+    if True:
         with Session(engine) as session, open(
             db_backup_path / "autobracket_player_season.csv"
         ) as csv_file:
@@ -304,7 +307,7 @@ async def init_from_mongo():
             result = session.execute(sql).scalars().all()
             print(result)
 
-    if False:
+    if True:
         with Session(engine) as session, open(
             db_backup_path / "autobracket_simulation_dist.csv"
         ) as csv_file:
@@ -352,6 +355,7 @@ async def init_from_mongo():
             sql = select(SimulationDistORM)
             result = session.execute(sql).scalars().all()
             print(result)
+
 
     with Session(engine) as session, open(
         db_backup_path / "autobracket_simulation_run.csv"
