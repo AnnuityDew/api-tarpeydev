@@ -50,6 +50,12 @@ class GameStatus(str, Enum):
     WISH_LIST = "Wish List"
 
 
+class BacklogChartType(str, Enum):
+    TREEMAP = "treemap"
+    BUBBLES = "bubbles"
+    TIMELINE = "timeline"
+
+
 class BacklogGameORM(Base):
     __tablename__ = "backlog_games"
 
@@ -116,6 +122,18 @@ class BacklogGamePatch(BaseModel):
     # necessary for parsing a SQLAlchemy ORM result
     class Config:
         orm_mode = True
+
+
+class BacklogUserVisualsORM(Base):
+    __tablename__ = "backlog_user_visuals"
+
+    id = Column(String, primary_key=True)
+    treemap_json = Column(JSON)
+    bubbles_json = Column(JSON)
+    timeline_json = Column(JSON)
+
+    def __repr__(self):
+        return f"BacklogGame(id={self.id}"
 
 
 class Against(str, Enum):
