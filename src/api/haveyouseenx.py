@@ -3,7 +3,8 @@ import json
 from typing import List
 
 # import third party packages
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, background
+import httpx
 import numpy
 import pandas
 import plotly
@@ -17,7 +18,13 @@ from sqlalchemy.sql import func
 # import custom local stuff
 from src.api.security import validate_jwt
 from src.db.alchemy import get_alchemy
-from src.db.models import BacklogGameORM, BacklogGame, BacklogGame, BacklogGamePatch
+from src.db.models import (
+    BacklogGameORM,
+    BacklogGame,
+    BacklogGamePatch,
+    BacklogUserVisualsORM,
+    BacklogChartType,
+)
 
 
 hysx_api = APIRouter(
@@ -26,7 +33,7 @@ hysx_api = APIRouter(
 )
 
 
-@hysx_api.get('/annuitydew/game/all')
+@hysx_api.get("/annuitydew/game/all")
 async def get_all_games(engine: Engine = Depends(get_alchemy)):
     with Session(engine) as session:
         sql = select(BacklogGameORM)
@@ -38,9 +45,10 @@ async def get_all_games(engine: Engine = Depends(get_alchemy)):
         raise HTTPException(status_code=404, detail="No data found!")
 
 
-@hysx_api.post('/annuitydew/game', dependencies=[Depends(validate_jwt)])
+@hysx_api.post("/annuitydew/game", dependencies=[Depends(validate_jwt)])
 async def add_games(
     row_list: List[BacklogGame],
+    background_tasks: BackgroundTasks,
     engine: Engine = Depends(get_alchemy),
 ):
     with Session(engine) as session:
@@ -49,12 +57,15 @@ async def add_games(
             session.add(BacklogGameORM(**row.dict()))
         session.commit()
 
+    # need to update visualizations for this user in the background
+    background_tasks.add_task(update_visualizations, engine=engine)
+
     return {
         "result": row_list,
     }
 
 
-@hysx_api.get('/annuitydew/game/{id}', response_model=BacklogGame)
+@hysx_api.get("/annuitydew/game/{id}", response_model=BacklogGame)
 async def get_game(
     id: int,
     engine: Engine = Depends(get_alchemy),
@@ -71,10 +82,11 @@ async def get_game(
     return result
 
 
-@hysx_api.patch('/annuitydew/game/{id}', dependencies=[Depends(validate_jwt)])
+@hysx_api.patch("/annuitydew/game/{id}", dependencies=[Depends(validate_jwt)])
 async def edit_game(
     id: int,
     patch: BacklogGamePatch,
+    background_tasks: BackgroundTasks,
     engine: Engine = Depends(get_alchemy),
 ):
     with Session(engine) as session:
@@ -92,14 +104,18 @@ async def edit_game(
         session.commit()
         session.refresh(result)
 
+    # need to update visualizations for this user in the background
+    background_tasks.add_task(update_visualizations, engine=engine)
+
     return {
         "result": result,
     }
 
 
-@hysx_api.delete('/annuitydew/game/{id}', dependencies=[Depends(validate_jwt)])
+@hysx_api.delete("/annuitydew/game/{id}", dependencies=[Depends(validate_jwt)])
 async def delete_game(
     id: int,
+    background_tasks: BackgroundTasks,
     engine: Engine = Depends(get_alchemy),
 ):
     with Session(engine) as session:
@@ -109,35 +125,40 @@ async def delete_game(
         session.delete(deletion)
         session.commit()
 
+    # need to update visualizations for this user in the background
+    background_tasks.add_task(update_visualizations, engine=engine)
+
     return {
         "result": deletion,
     }
 
 
-@hysx_api.get('/annuitydew/stats/counts')
+@hysx_api.get("/annuitydew/stats/counts")
 async def count_by_status(engine: Engine = Depends(get_alchemy)):
     with Session(engine) as session:
         try:
-            results = session.query(
-                BacklogGameORM.game_status,
-                func.count(BacklogGameORM.game_status)
-            ).group_by(BacklogGameORM.game_status).all()
+            results = (
+                session.query(
+                    BacklogGameORM.game_status, func.count(BacklogGameORM.game_status)
+                )
+                .group_by(BacklogGameORM.game_status)
+                .all()
+            )
         except NoResultFound:
             raise HTTPException(status_code=404, detail="No data found!")
-
 
     stats = {result[0]: result[1] for result in results}
     sorted_stats = dict(sorted(stats.items(), key=lambda item: item[1], reverse=True))
     return sorted_stats
 
 
-@hysx_api.get('/annuitydew/stats/playtime')
+@hysx_api.get("/annuitydew/stats/playtime")
 async def playtime(engine: Engine = Depends(get_alchemy)):
     with Session(engine) as session:
         try:
             results = session.query(
                 func.sum(BacklogGameORM.game_hours),
-                func.sum(BacklogGameORM.game_minutes)
+                func.sum(BacklogGameORM.game_minutes),
             ).one()
         except NoResultFound:
             raise HTTPException(status_code=404, detail="No data found!")
@@ -155,62 +176,7 @@ async def playtime(engine: Engine = Depends(get_alchemy)):
     }
 
 
-@hysx_api.get('/annuitydew/treemap')
-async def get_system_treemap(engine: Engine = Depends(get_alchemy)):
-
-
-async def pipeline_for_treemap():
-    # convert to pandas dataframe
-    backlog = pandas.DataFrame([game.doc() for game in backlog])
-    # read backlog and create a count column
-    backlog['count'] = 1
-    # column to serve as the root of the backlog
-    backlog['backlog'] = 'Backlog'
-    # complete gametime calc
-    backlog['game_hours'] = (
-        backlog['game_hours'] + (backlog['game_minutes'] / 60)
-    )
-
-    # pivot table by gameSystem and gameStatus.
-    # fill missing values with zeroes
-
-    system_status_df = backlog.groupby(
-        by=[
-            'backlog',
-            'game_system',
-            'game_status',
-        ]
-    ).agg(
-        {
-            'count': sum,
-            'game_hours': sum,
-        }
-    ).reset_index()
-
-    figure = px.treemap(
-        system_status_df,
-        path=['backlog', 'game_status', 'game_system'],
-        values='count',
-        color=numpy.log10(system_status_df['game_hours']),
-        color_continuous_scale=px.colors.diverging.Spectral_r,
-        hover_data=['game_hours'],
-    )
-
-    # update margins and colors
-    figure.update_layout(
-        margin=dict(l=10, r=0, t=10, b=10),
-    )
-    figure.layout.coloraxis.colorbar = dict(
-        title='Hours',
-        tickvals=[1.0, 2.0, 3.0],
-        ticktext=[10, 100, 1000],
-    )
-
-    # convert to JSON for the web
-    return json.loads(plotly.io.to_json(figure))
-
-
-@hysx_api.get('/annuitydew/search', response_model=List[BacklogGame])
+@hysx_api.get("/annuitydew/search", response_model=List[BacklogGame])
 async def search(
     engine: Engine = Depends(get_alchemy),
     dlc: YesNo = None,
@@ -220,11 +186,11 @@ async def search(
 ):
     engine = AIOEngine(motor_client=client, database="backlogs")
     initial_args = {
-        'dlc': dlc,
-        'now_playing': now_playing,
-        'game_status': game_status,
+        "dlc": dlc,
+        "now_playing": now_playing,
+        "game_status": game_status,
     }
-    final_args = { k:v for k, v in initial_args.items() if v is not None }
+    final_args = {k: v for k, v in initial_args.items() if v is not None}
     if final_args:
         query_expression_list = [
             (getattr(BacklogGame, key)) == value for key, value in final_args.items()
@@ -238,8 +204,8 @@ async def search(
             BacklogGame,
             combined_query_expression,
             sort=(BacklogGame.dlc, BacklogGame.id),
-        )        
-    elif q == '' or q is None:
+        )
+    elif q == "" or q is None:
         results = await engine.find(
             BacklogGame,
             sort=(BacklogGame.dlc, BacklogGame.id),
@@ -247,74 +213,161 @@ async def search(
     else:
         results = await engine.find(
             BacklogGame,
-            { '$text': { '$search': f"\"{q}\"" }},
+            {"$text": {"$search": f'"{q}"'}},
             sort=(BacklogGame.dlc, BacklogGame.id),
         )
 
     return results
 
 
-@hysx_api.get('/annuitydew/bubbles')
-async def system_bubbles(backlog: List[BacklogGame] = Depends(get_all_games)):
-    # convert to pandas dataframe
-    backlog = pandas.DataFrame([game.doc() for game in backlog])
-    # read backlog and create a count column
-    backlog['count_dist'] = 1
-    # complete gametime calc
-    backlog['game_hours'] = (
-        backlog['game_hours'] + (backlog['game_minutes'] / 60)
+@hysx_api.get("/annuitydew/{chart_type}")
+async def get_backlog_user_visuals(
+    chart_type: BacklogChartType,
+    engine: Engine = Depends(get_alchemy),
+):
+    with Session(engine) as session:
+        sql = select(getattr(BacklogUserVisualsORM, f"{chart_type}_json")).where(
+            BacklogUserVisualsORM.id == "annuitydew"
+        )
+        # one returns a Row object, which is a named tuple.
+        # using scalar_one to access the object directly instead.
+        try:
+            result = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
+
+    return result
+
+
+@hysx_api.get("/test/update_visuals")
+async def update_visualizations(engine: Engine):
+    # make the necessary HTTPX requests
+    async with httpx.AsyncClient() as client:
+        backlog_data = await client.get("/annuitydew/game/all")
+        count_data = await client.get("/annuitydew/stats/counts")
+
+    # update JSON for user visuals
+    treemap_json = await pipeline_for_treemap(backlog_data)
+    bubbles_json = await pipeline_for_bubbles(backlog_data)
+    timeline_json = await pipeline_for_timeline(backlog_data, count_data)
+
+    new_record = BacklogUserVisualsORM(
+        id="annuitydew",
+        treemap_json=treemap_json,
+        bubbles_json=bubbles_json,
+        timeline_json=timeline_json,
     )
+
+    # put updated JSON in the database
+    with Session(engine) as session:
+        session.add(new_record)
+        session.commit()
+    
+    return
+
+
+async def pipeline_for_treemap(backlog_data):
+    # convert to pandas dataframe
+    backlog = pandas.DataFrame([game.doc() for game in backlog_data])
+    # read backlog and create a count column
+    backlog["count"] = 1
+    # column to serve as the root of the backlog
+    backlog["backlog"] = "Backlog"
+    # complete gametime calc
+    backlog["game_hours"] = backlog["game_hours"] + (backlog["game_minutes"] / 60)
 
     # pivot table by gameSystem and gameStatus.
     # fill missing values with zeroes
-    system_status_df = backlog.groupby(
-        by=[
-            'game_system',
-            'game_status',
-        ]
-    ).agg(
+
+    system_status_df = (
+        backlog.groupby(
+            by=[
+                "backlog",
+                "game_system",
+                "game_status",
+            ]
+        )
+        .agg(
+            {
+                "count": sum,
+                "game_hours": sum,
+            }
+        )
+        .reset_index()
+    )
+
+    figure = px.treemap(
+        system_status_df,
+        path=["backlog", "game_status", "game_system"],
+        values="count",
+        color=numpy.log10(system_status_df["game_hours"]),
+        color_continuous_scale=px.colors.diverging.Spectral_r,
+        hover_data=["game_hours"],
+    )
+
+    # update margins and colors
+    figure.update_layout(
+        margin=dict(l=10, r=0, t=10, b=10),
+    )
+    figure.layout.coloraxis.colorbar = dict(
+        title="Hours",
+        tickvals=[1.0, 2.0, 3.0],
+        ticktext=[10, 100, 1000],
+    )
+
+    # convert to JSON for the web
+    return json.loads(plotly.io.to_json(figure))
+
+
+async def pipeline_for_bubbles(backlog_data):
+    # convert to pandas dataframe
+    backlog = pandas.DataFrame([game.doc() for game in backlog_data])
+    # read backlog and create a count column
+    backlog["count_dist"] = 1
+    # complete gametime calc
+    backlog["game_hours"] = backlog["game_hours"] + (backlog["game_minutes"] / 60)
+
+    # pivot table by gameSystem and gameStatus.
+    # fill missing values with zeroes
+    system_status_df = backlog.groupby(by=["game_system", "game_status",]).agg(
         {
-            'count_dist': sum,
-            'game_hours': sum,
+            "count_dist": sum,
+            "game_hours": sum,
         }
     )
 
     # we also want the % in each category for each system
     # this code takes care of that
-    system_totals = system_status_df.groupby(['game_system']).agg({'count_dist': sum})
-    normalized_df = system_status_df.div(system_totals, level='game_system')
-    normalized_df['game_hours'] = system_status_df['game_hours']
-    normalized_df['total_count'] = system_status_df['count_dist']
+    system_totals = system_status_df.groupby(["game_system"]).agg({"count_dist": sum})
+    normalized_df = system_status_df.div(system_totals, level="game_system")
+    normalized_df["game_hours"] = system_status_df["game_hours"]
+    normalized_df["total_count"] = system_status_df["count_dist"]
 
     # now reset index and prep the data for JS
     normalized_df.reset_index(inplace=True)
 
     # x data for each status
     x_data_counts = [
-        normalized_df.loc[
-            normalized_df.game_status == status
-        ].total_count.tolist() for status in normalized_df.game_status.unique().tolist()
+        normalized_df.loc[normalized_df.game_status == status].total_count.tolist()
+        for status in normalized_df.game_status.unique().tolist()
     ]
 
     # y data for each status
     y_data_dist = [
-        normalized_df.loc[
-            normalized_df.game_status == status
-        ].count_dist.tolist() for status in normalized_df.game_status.unique().tolist()
+        normalized_df.loc[normalized_df.game_status == status].count_dist.tolist()
+        for status in normalized_df.game_status.unique().tolist()
     ]
 
     # z data for each status
     z_data_hours = [
-        normalized_df.loc[
-            normalized_df.game_status == status
-        ].game_hours.tolist() for status in normalized_df.game_status.unique().tolist()
+        normalized_df.loc[normalized_df.game_status == status].game_hours.tolist()
+        for status in normalized_df.game_status.unique().tolist()
     ]
 
     # systems for each status
     label_data = [
-        normalized_df.loc[
-            normalized_df.game_status == status
-        ].game_system.tolist() for status in normalized_df.game_status.unique().tolist()
+        normalized_df.loc[normalized_df.game_status == status].game_system.tolist()
+        for status in normalized_df.game_status.unique().tolist()
     ]
 
     # categories
@@ -324,48 +377,48 @@ async def system_bubbles(backlog: List[BacklogGame] = Depends(get_all_games)):
     color_data = px.colors.qualitative.Bold
 
     return {
-        'x_data_counts': x_data_counts,
-        'y_data_dist': y_data_dist,
-        'z_data_hours': z_data_hours,
-        'bubble_names': bubble_names,
-        'label_data': label_data,
-        'color_data': color_data,
+        "x_data_counts": x_data_counts,
+        "y_data_dist": y_data_dist,
+        "z_data_hours": z_data_hours,
+        "bubble_names": bubble_names,
+        "label_data": label_data,
+        "color_data": color_data,
     }
 
 
-@hysx_api.get('/annuitydew/timeline')
-async def timeline(
-    backlog: List[BacklogGame] = Depends(get_all_games),
-    stats=Depends(count_by_status)
-):
+async def pipeline_for_timeline(backlog_data, count_data):
     # convert to pandas dataframe
-    backlog = pandas.DataFrame([game.doc() for game in backlog])
+    backlog = pandas.DataFrame([game.doc() for game in backlog_data])
     # drop unused columns, move dates to x axis to create timeline
     # sort for most recent event at the top
-    backlog = backlog[[
-        '_id',
-        'game_title',
-        'sub_title',
-        'add_date',
-        'start_date',
-        'beat_date',
-        'complete_date',
-    ]].melt(
-        id_vars=['_id', 'game_title', 'sub_title'],
-        var_name='event_name',
-        value_name='event_date',
+    backlog = backlog[
+        [
+            "_id",
+            "game_title",
+            "sub_title",
+            "add_date",
+            "start_date",
+            "beat_date",
+            "complete_date",
+        ]
+    ].melt(
+        id_vars=["_id", "game_title", "sub_title"],
+        var_name="event_name",
+        value_name="event_date",
     )
 
     # fill empty cells with the backlog's birth date
-    backlog['event_date'] = (
-        backlog['event_date'].fillna(numpy.datetime64('2011-10-08T16:00:00'))
+    backlog["event_date"] = backlog["event_date"].fillna(
+        numpy.datetime64("2011-10-08T16:00:00")
     )
 
     # event date to datetime
     backlog.event_date = pandas.to_datetime(backlog.event_date, utc=True)
 
     # sort by date descending
-    backlog.sort_values(['event_date', '_id', 'event_name'], ascending=False, inplace=True)
+    backlog.sort_values(
+        ["event_date", "_id", "event_name"], ascending=False, inplace=True
+    )
 
     # reset index
     backlog.reset_index(inplace=True)
@@ -373,61 +426,57 @@ async def timeline(
     # next, place current status counts in the first row.
     # then we'll be able to calculate the backlog at older
     # points in time using the timeline
-    backlog['not_started'] = stats.get('Not Started')
-    backlog['started'] = stats.get('Started')
-    backlog['beaten'] = stats.get('Beaten')
-    backlog['completed'] = stats.get('Completed')
+    backlog["not_started"] = count_data.get("Not Started")
+    backlog["started"] = count_data.get("Started")
+    backlog["beaten"] = count_data.get("Beaten")
+    backlog["completed"] = count_data.get("Completed")
     backlog = backlog.assign(ns=0, s=0, b=0, c=0)
 
     # initalize modifiers
     mod_ns, mod_s, mod_b, mod_c = 0, 0, 0, 0
 
     for row in backlog.itertuples():
-        backlog.at[row.Index, 'ns'] += mod_ns
-        backlog.at[row.Index, 's'] += mod_s
-        backlog.at[row.Index, 'b'] += mod_b
-        backlog.at[row.Index, 'c'] += mod_c
-        if row.event_name == 'add_date':
+        backlog.at[row.Index, "ns"] += mod_ns
+        backlog.at[row.Index, "s"] += mod_s
+        backlog.at[row.Index, "b"] += mod_b
+        backlog.at[row.Index, "c"] += mod_c
+        if row.event_name == "add_date":
             mod_ns += 1
-        elif row.event_name == 'start_date':
+        elif row.event_name == "start_date":
             mod_ns -= 1
             mod_s += 1
-        elif row.event_name == 'beat_date':
+        elif row.event_name == "beat_date":
             mod_s -= 1
             mod_b += 1
-        elif row.event_name == 'complete_date':
+        elif row.event_name == "complete_date":
             mod_b -= 1
             mod_c += 1
 
     # now recalculate the timeline values. this is our final data
-    backlog['ns'] = backlog['not_started'] - backlog['ns']
-    backlog['s'] = backlog['started'] - backlog['s']
-    backlog['b'] = backlog['beaten'] - backlog['b']
-    backlog['c'] = backlog['completed'] - backlog['c']
+    backlog["ns"] = backlog["not_started"] - backlog["ns"]
+    backlog["s"] = backlog["started"] - backlog["s"]
+    backlog["b"] = backlog["beaten"] - backlog["b"]
+    backlog["c"] = backlog["completed"] - backlog["c"]
 
     # change sort to ascending and drop unnecessary columns
     # set index to event date
-    backlog = backlog.sort_values(
-        ['event_date', '_id', 'event_name'], ascending=True
-    )[['event_date', 'ns', 's', 'b', 'c']]
+    backlog = backlog.sort_values(["event_date", "_id", "event_name"], ascending=True)[
+        ["event_date", "ns", "s", "b", "c"]
+    ]
 
     # drop duplicate dates (keep last, that will be most recent)
-    backlog.drop_duplicates(subset=['event_date'], keep='last', inplace=True)
+    backlog.drop_duplicates(subset=["event_date"], keep="last", inplace=True)
 
     # set event date as datetime index and resample to daily
     # also drop the date column (it's the index now)
     # and convert back to integers (resample changes dtype)
     time_idx = pandas.DatetimeIndex(backlog.event_date)
     backlog.set_index(time_idx, inplace=True)
-    backlog = backlog.resample('D').pad().drop(
-        columns='event_date'
-    ).convert_dtypes()
+    backlog = backlog.resample("D").pad().drop(columns="event_date").convert_dtypes()
 
     # limit our chart to dates after the birth of the backlog
     backlog = backlog[
-        pandas.Timestamp(
-            '2015-01-01 00:00:00+0000', tz='UTC', freq='D'
-        ):
+        pandas.Timestamp("2015-01-01 00:00:00+0000", tz="UTC", freq="D") :
     ]
 
     # x data is time, y_data is our timeline values
@@ -438,18 +487,17 @@ async def timeline(
     x_data_dates = backlog.index.tolist()
     # dates need to be converted to be JS-ready
     x_data_dates = [
-        int(time_point.strftime("%s%f"))/1000 for time_point in x_data_dates
+        int(time_point.strftime("%s%f")) / 1000 for time_point in x_data_dates
     ]
 
     # color data
     area_colors = px.colors.sequential.Agsunset[::2]
 
     return {
-        'y_data_c': y_data_c,
-        'y_data_b': y_data_b,
-        'y_data_s': y_data_s,
-        'y_data_ns': y_data_ns,
-        'x_data_dates': x_data_dates,
-        'area_colors': area_colors,
+        "y_data_c": y_data_c,
+        "y_data_b": y_data_b,
+        "y_data_s": y_data_s,
+        "y_data_ns": y_data_ns,
+        "x_data_dates": x_data_dates,
+        "area_colors": area_colors,
     }
-
