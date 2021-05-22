@@ -176,50 +176,6 @@ async def playtime(engine: Engine = Depends(get_alchemy)):
     }
 
 
-@hysx_api.get("/annuitydew/search", response_model=List[BacklogGame])
-async def search(
-    engine: Engine = Depends(get_alchemy),
-    dlc: YesNo = None,
-    now_playing: YesNo = None,
-    game_status: GameStatus = None,
-    q: str = None,
-):
-    engine = AIOEngine(motor_client=client, database="backlogs")
-    initial_args = {
-        "dlc": dlc,
-        "now_playing": now_playing,
-        "game_status": game_status,
-    }
-    final_args = {k: v for k, v in initial_args.items() if v is not None}
-    if final_args:
-        query_expression_list = [
-            (getattr(BacklogGame, key)) == value for key, value in final_args.items()
-        ]
-        combined_query_expression = query.and_(*query_expression_list)
-    else:
-        combined_query_expression = False
-    # change to plain q for OR results. f"\"{q}\"" is an AND search.
-    if combined_query_expression:
-        results = await engine.find(
-            BacklogGame,
-            combined_query_expression,
-            sort=(BacklogGame.dlc, BacklogGame.id),
-        )
-    elif q == "" or q is None:
-        results = await engine.find(
-            BacklogGame,
-            sort=(BacklogGame.dlc, BacklogGame.id),
-        )
-    else:
-        results = await engine.find(
-            BacklogGame,
-            {"$text": {"$search": f'"{q}"'}},
-            sort=(BacklogGame.dlc, BacklogGame.id),
-        )
-
-    return results
-
-
 @hysx_api.get("/annuitydew/{chart_type}")
 async def get_backlog_user_visuals(
     chart_type: BacklogChartType,
@@ -240,16 +196,21 @@ async def get_backlog_user_visuals(
 
 
 @hysx_api.get("/test/update_visuals")
-async def update_visualizations(engine: Engine):
+async def update_visualizations(engine: Engine = Depends(get_alchemy)):
     # make the necessary HTTPX requests
     async with httpx.AsyncClient() as client:
-        backlog_data = await client.get("/annuitydew/game/all")
-        count_data = await client.get("/annuitydew/stats/counts")
+        domain = "http://127.0.0.1:8000/haveyouseenx"
+        backlog_data = await client.get(f"{domain}/annuitydew/game/all")
+        count_data = await client.get(f"{domain}/annuitydew/stats/counts")
+
+    # store json
+    backlog_json = backlog_data.json()
+    count_json = count_data.json()
 
     # update JSON for user visuals
-    treemap_json = await pipeline_for_treemap(backlog_data)
-    bubbles_json = await pipeline_for_bubbles(backlog_data)
-    timeline_json = await pipeline_for_timeline(backlog_data, count_data)
+    treemap_json = await pipeline_for_treemap(backlog_json)
+    bubbles_json = await pipeline_for_bubbles(backlog_json)
+    timeline_json = await pipeline_for_timeline(backlog_json, count_json)
 
     new_record = BacklogUserVisualsORM(
         id="annuitydew",
@@ -263,12 +224,12 @@ async def update_visualizations(engine: Engine):
         session.add(new_record)
         session.commit()
     
-    return
+    return 1
 
 
-async def pipeline_for_treemap(backlog_data):
+async def pipeline_for_treemap(backlog_json):
     # convert to pandas dataframe
-    backlog = pandas.DataFrame([game.doc() for game in backlog_data])
+    backlog = pandas.DataFrame(backlog_json)
     # read backlog and create a count column
     backlog["count"] = 1
     # column to serve as the root of the backlog
@@ -319,9 +280,9 @@ async def pipeline_for_treemap(backlog_data):
     return json.loads(plotly.io.to_json(figure))
 
 
-async def pipeline_for_bubbles(backlog_data):
+async def pipeline_for_bubbles(backlog_json):
     # convert to pandas dataframe
-    backlog = pandas.DataFrame([game.doc() for game in backlog_data])
+    backlog = pandas.DataFrame(backlog_json)
     # read backlog and create a count column
     backlog["count_dist"] = 1
     # complete gametime calc
@@ -386,14 +347,14 @@ async def pipeline_for_bubbles(backlog_data):
     }
 
 
-async def pipeline_for_timeline(backlog_data, count_data):
+async def pipeline_for_timeline(backlog_json, count_json):
     # convert to pandas dataframe
-    backlog = pandas.DataFrame([game.doc() for game in backlog_data])
+    backlog = pandas.DataFrame(backlog_json)
     # drop unused columns, move dates to x axis to create timeline
     # sort for most recent event at the top
     backlog = backlog[
         [
-            "_id",
+            "id",
             "game_title",
             "sub_title",
             "add_date",
@@ -402,7 +363,7 @@ async def pipeline_for_timeline(backlog_data, count_data):
             "complete_date",
         ]
     ].melt(
-        id_vars=["_id", "game_title", "sub_title"],
+        id_vars=["id", "game_title", "sub_title"],
         var_name="event_name",
         value_name="event_date",
     )
@@ -417,7 +378,7 @@ async def pipeline_for_timeline(backlog_data, count_data):
 
     # sort by date descending
     backlog.sort_values(
-        ["event_date", "_id", "event_name"], ascending=False, inplace=True
+        ["event_date", "id", "event_name"], ascending=False, inplace=True
     )
 
     # reset index
@@ -426,10 +387,10 @@ async def pipeline_for_timeline(backlog_data, count_data):
     # next, place current status counts in the first row.
     # then we'll be able to calculate the backlog at older
     # points in time using the timeline
-    backlog["not_started"] = count_data.get("Not Started")
-    backlog["started"] = count_data.get("Started")
-    backlog["beaten"] = count_data.get("Beaten")
-    backlog["completed"] = count_data.get("Completed")
+    backlog["not_started"] = count_json.get("Not Started")
+    backlog["started"] = count_json.get("Started")
+    backlog["beaten"] = count_json.get("Beaten")
+    backlog["completed"] = count_json.get("Completed")
     backlog = backlog.assign(ns=0, s=0, b=0, c=0)
 
     # initalize modifiers
@@ -460,7 +421,7 @@ async def pipeline_for_timeline(backlog_data, count_data):
 
     # change sort to ascending and drop unnecessary columns
     # set index to event date
-    backlog = backlog.sort_values(["event_date", "_id", "event_name"], ascending=True)[
+    backlog = backlog.sort_values(["event_date", "id", "event_name"], ascending=True)[
         ["event_date", "ns", "s", "b", "c"]
     ]
 
