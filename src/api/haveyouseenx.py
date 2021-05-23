@@ -1,15 +1,16 @@
 # import Python packages
 import json
+import os
 from typing import List
 
 # import third party packages
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, background
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 import httpx
 import numpy
 import pandas
 import plotly
 import plotly.express as px
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.future import Engine
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
@@ -19,6 +20,7 @@ from sqlalchemy.sql import func
 from src.api.security import validate_jwt
 from src.db.alchemy import get_alchemy
 from src.db.models import (
+    GameStatus,
     BacklogGameORM,
     BacklogGame,
     BacklogGamePatch,
@@ -195,13 +197,50 @@ async def get_backlog_user_visuals(
     return result
 
 
-@hysx_api.get("/test/update_visuals")
+@hysx_api.get('/annuitydew/search', response_model=List[BacklogGame])
+async def search(
+    engine: Engine = Depends(get_alchemy),
+    dlc: bool = None,
+    now_playing: bool = None,
+    game_status: GameStatus = None,
+    q: str = None,
+):
+    initial_args = {
+        'dlc': dlc,
+        'now_playing': now_playing,
+        'game_status': game_status,
+    }
+    final_args = { k:v for k, v in initial_args.items() if v is not None }
+    if final_args:
+        query_expression_list = [
+            (getattr(BacklogGame, key)) == value for key, value in final_args.items()
+        ]
+        combined_query_expression = and_(*query_expression_list)
+    else:
+        combined_query_expression = False
+    # change to plain q for OR results. f"\"{q}\"" is an AND search.
+    with Session(engine) as session:
+        if combined_query_expression:
+            sql = select(BacklogGameORM).where(combined_query_expression)
+        elif q == '' or q is None:
+            sql = select(BacklogGameORM)
+        else:
+            sql = select(BacklogGameORM)
+
+        try:
+            result = session.execute(sql).scalars().all()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
+
+    return result
+
+
 async def update_visualizations(engine: Engine = Depends(get_alchemy)):
     # make the necessary HTTPX requests
     async with httpx.AsyncClient() as client:
-        domain = "http://127.0.0.1:8000/haveyouseenx"
-        backlog_data = await client.get(f"{domain}/annuitydew/game/all")
-        count_data = await client.get(f"{domain}/annuitydew/stats/counts")
+        domain = os.getenv('ADDRESS')
+        backlog_data = await client.get(f"{domain}/haveyouseenx/annuitydew/game/all")
+        count_data = await client.get(f"{domain}/haveyouseenx/annuitydew/stats/counts")
 
     # store json
     backlog_json = backlog_data.json()
@@ -212,19 +251,26 @@ async def update_visualizations(engine: Engine = Depends(get_alchemy)):
     bubbles_json = await pipeline_for_bubbles(backlog_json)
     timeline_json = await pipeline_for_timeline(backlog_json, count_json)
 
-    new_record = BacklogUserVisualsORM(
-        id="annuitydew",
-        treemap_json=treemap_json,
-        bubbles_json=bubbles_json,
-        timeline_json=timeline_json,
-    )
+    new_record = {
+        "id": "annuitydew",
+        "treemap_json": treemap_json,
+        "bubbles_json": bubbles_json,
+        "timeline_json": timeline_json,
+    }
 
-    # put updated JSON in the database
+    # update latest JSON in the database
+    # (or create it if it doesn't exist)
     with Session(engine) as session:
-        session.add(new_record)
+        sql = select(BacklogUserVisualsORM).where(BacklogUserVisualsORM.id == "annuitydew")
+        try:
+            result = session.execute(sql).scalar_one()
+            for attr, value in new_record.items():
+                setattr(result, attr, value)
+        except NoResultFound:
+            session.add(BacklogUserVisualsORM(**new_record))
         session.commit()
     
-    return 1
+    return new_record
 
 
 async def pipeline_for_treemap(backlog_json):
