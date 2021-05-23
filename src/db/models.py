@@ -133,7 +133,7 @@ class BacklogUserVisualsORM(Base):
     timeline_json = Column(JSON)
 
     def __repr__(self):
-        return f"BacklogGame(id={self.id}"
+        return f"BacklogUserVisuals(id={self.id})"
 
 
 class Against(str, Enum):
