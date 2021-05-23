@@ -53,7 +53,9 @@ async def alchemy_startup():
     
     if os.getenv("INIT") == "yes":
         return engine_object.engine
+    elif os.getenv("ALEMBIC") == "yes":
+        return connect_string
 
 
 async def alchemy_shutdown():
-    print("shutdown!")
+    print("App shutdown complete!")
