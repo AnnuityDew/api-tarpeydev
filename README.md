@@ -62,3 +62,4 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/).
   * [Quickstart for using the Cloud SQL Auth proxy](https://cloud.google.com/sql/docs/postgres/quickstart-proxy-test)
   * [Connecting from Cloud Run (fully managed) to Cloud SQL](https://cloud.google.com/sql/docs/postgres/connect-run)
   * https://superuser.com/questions/458875/how-do-you-get-loopback-addresses-other-than-127-0-0-1-to-work-on-os-x
+  * https://stackoverflow.com/questions/22178339/is-it-possible-to-store-the-alembic-connect-string-outside-of-alembic-ini

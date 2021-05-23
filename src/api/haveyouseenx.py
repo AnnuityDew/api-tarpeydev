@@ -178,7 +178,7 @@ async def playtime(engine: Engine = Depends(get_alchemy)):
     }
 
 
-@hysx_api.get("/annuitydew/{chart_type}")
+@hysx_api.get("/annuitydew/charts/{chart_type}")
 async def get_backlog_user_visuals(
     chart_type: BacklogChartType,
     engine: Engine = Depends(get_alchemy),
@@ -213,14 +213,15 @@ async def search(
     final_args = { k:v for k, v in initial_args.items() if v is not None }
     if final_args:
         query_expression_list = [
-            (getattr(BacklogGame, key)) == value for key, value in final_args.items()
+            (getattr(BacklogGameORM, key)) == value for key, value in final_args.items()
         ]
         combined_query_expression = and_(*query_expression_list)
+        filters = True
     else:
-        combined_query_expression = False
+        filters = False
     # change to plain q for OR results. f"\"{q}\"" is an AND search.
     with Session(engine) as session:
-        if combined_query_expression:
+        if filters:
             sql = select(BacklogGameORM).where(combined_query_expression)
         elif q == '' or q is None:
             sql = select(BacklogGameORM)
