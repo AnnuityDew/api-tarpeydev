@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 # import custom local stuff
+from src.api.users import users_api
 from src.api.index import index_api
 from src.api.autobracket import ab_api
 from src.api.haveyouseenx import hysx_api
@@ -87,9 +88,10 @@ def create_fastapi_app():
     # api_app.add_event_handler('startup', multiproc_context)
 
     # include subrouters of the FastAPI app
+    api_app.include_router(users_api)
     api_app.include_router(index_api)
-    api_app.include_router(ab_api)
     api_app.include_router(hysx_api)
+    api_app.include_router(ab_api)
     api_app.include_router(ml_api)
     api_app.include_router(security_api)
 

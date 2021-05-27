@@ -1,5 +1,4 @@
 # import native Python packages
-import asyncio
 import os
 from datetime import timedelta
 from enum import Enum
@@ -9,17 +8,22 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_login import LoginManager
-from motor.motor_asyncio import AsyncIOMotorClient
+from sqlalchemy import select
+from sqlalchemy.future import Engine
+from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError, NoResultFound
 from passlib.context import CryptContext
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel
+from pydantic.error_wrappers import ValidationError
 
 # import custom local stuff
-from src.db.motor import get_odm
+from src.db.alchemy import get_alchemy
+from src.db.models import UserIn, UserOut, UserDB, UserORM
 
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
 users_api = APIRouter(
@@ -43,9 +47,9 @@ class LoginManagerReversed(LoginManager):
         token = request.cookies.get(self.cookie_name)
 
         # if not token and self.auto_error:
-            # this is the standard exception as raised
-            # by the parent class
-            # raise InvalidCredentialsException
+        # this is the standard exception as raised
+        # by the parent class
+        # raise InvalidCredentialsException
 
         return token if token else None
 
@@ -57,7 +61,7 @@ class LoginManagerReversed(LoginManager):
         token = None
         if self.use_cookie:
             token = self._token_from_cookie(request)
-                
+
         if token is None and self.use_header:
             token = await super(LoginManager, self).__call__(request)
 
@@ -72,17 +76,12 @@ class LoginManagerReversed(LoginManager):
 
 oauth2_scheme = LoginManagerReversed(
     SECRET_KEY,
-    tokenUrl='users/token',
+    token_url="users/token",
     algorithm=ALGORITHM,
     use_cookie=True,
 )
-oauth2_scheme.cookie_name = 'Authorization'
+oauth2_scheme.cookie_name = "Authorization"
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-class ApprovedUsers(str, Enum):
-    TARPEY = "annuitydew"
-    MATT = "matt"
 
 
 class Token(BaseModel):
@@ -94,69 +93,37 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
-class UserBase(BaseModel):
-    username: ApprovedUsers = Field(..., alias='_id')
-
-    @validator('username')
-    def username_alphanumeric(cls, name):
-        assert name.isalnum(), 'Username must be alphanumeric.'
-        return name
-
-    class Config:
-        # with this setting validation doesn't fail for username.
-        # we use username as the MongoDB _id, so _id is an alias
-        allow_population_by_field_name = True
-
-
-class UserIn(UserBase):
-    password: str
-
-    @validator('password')
-    def password_alphanumeric(cls, pw):
-        assert pw.isalnum(), 'Password must be alphanumeric.'
-        return pw
-
-
-class UserOut(UserBase):
-    pass
-
-
-class UserDB(UserBase):
-    hashed_password: str
-
-
 @users_api.post("/", response_model=UserOut)
 async def create_user(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    client: AsyncIOMotorClient = Depends(get_odm),
+    engine: Engine = Depends(get_alchemy),
 ):
-    db = client.users
-    collection = db.users
+    with Session(engine) as session:
+        try:
+            session.add(
+                UserORM(
+                    username=form_data.username,
+                    password=await get_password_hash(form_data.password),
+                )
+            )
+            session.commit()
+        except IntegrityError:
+            raise HTTPException(
+                status_code=400, detail=f"{form_data.username} is already registered!"
+            )
 
-    try:
-        await collection.insert_one({
-            "_id": form_data.username,
-            "hashed_password": get_password_hash(form_data.password)
-        })
-    # need to put the specific exception here
-    except:
-        raise HTTPException(
-            status_code=400,
-            detail=f"{form_data.username} is already registered!"
-        )
-
-    return {'username': form_data.username}
+    return {"username": form_data.username}
 
 
 @users_api.post("/token", response_model=Token)
 async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
-    client: AsyncIOMotorClient = Depends(get_odm),
+    engine: Engine = Depends(get_alchemy),
 ):
     user = await authenticate_user(
         form_data.username,
         form_data.password,
-        client,
+        engine,
     )
 
     if not user:
@@ -171,7 +138,8 @@ async def login_for_access_token(
     # should be a string. user.username could instead have a
     # bot prefix for "bot:x" access to do something.
     access_token = oauth2_scheme.create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires,
+        data={"sub": user.username},
+        expires=access_token_expires,
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -183,32 +151,41 @@ async def read_self(current_user: UserOut = Depends(oauth2_scheme)):
 
 @users_api.delete("/me")
 async def delete_self(
-    client: AsyncIOMotorClient = Depends(get_odm),
+    engine: Engine = Depends(get_alchemy),
     current_user: UserOut = Depends(oauth2_scheme),
 ):
-    db = client.users
-    collection = db.users
-    doc = await collection.find_one_and_delete({'_id': current_user.username})
-    if doc is None:
-        raise HTTPException(status_code=404, detail="No data found!")
-    else:
-        return {'_id': current_user.username}
+    with Session(engine) as session:
+        sql = select(UserORM).where(UserORM.username == current_user.username)
+        try:
+            deletion = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
+        session.delete(deletion)
+        session.commit()
+
+    return {"deleted_user": deletion.username}
 
 
-@users_api.patch("/password", response_model=UserOut)
+@users_api.patch("/password")
 async def change_password(
-    updated_user: UserIn,
+    updated_password: str,
     current_user: UserOut = Depends(oauth2_scheme),
-    client: AsyncIOMotorClient = Depends(get_odm),
+    engine: Engine = Depends(get_alchemy),
 ):
-    db = client.users
-    collection = db.users
-    await collection.update_one(
-        {"_id": current_user.username},
-        {'$set': {"hashed_password": await get_password_hash(updated_user.password)}},
-    )
+    with Session(engine) as session:
+        sql = select(UserORM).where(UserORM.username == current_user.username)
+        # one returns a Row object, which is a named tuple.
+        # using scalar_one to access the object directly instead.
+        try:
+            result = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
 
-    return updated_user
+        result.password = await get_password_hash(updated_password)
+        session.commit()
+        session.refresh(result)
+
+    return "Password updated!"
 
 
 async def verify_password(plain_password, hashed_password):
@@ -219,8 +196,8 @@ async def get_password_hash(password):
     return password_context.hash(password)
 
 
-async def authenticate_user(username: str, password: str, client: AsyncIOMotorClient):
-    user = await get_user_and_hash(username, client)
+async def authenticate_user(username: str, password: str, engine: Engine):
+    user = await get_user_and_hash(username, engine)
     if not user:
         return None
     if not await verify_password(password, user.hashed_password):
@@ -228,7 +205,7 @@ async def authenticate_user(username: str, password: str, client: AsyncIOMotorCl
     return user
 
 
-async def get_user_and_hash(username: str, client: AsyncIOMotorClient):
+async def get_user_and_hash(username: str, engine: Engine):
     # this is where rubber meets the road between tiangolo's tutorial
     # and the fastapi_login docs. the mongo client is passed through
     # when FastAPI calls it. for fastapi_login's decorator, which only
@@ -238,21 +215,28 @@ async def get_user_and_hash(username: str, client: AsyncIOMotorClient):
     # these two more separate, but it doesn't seem necessary since
     # the password gets chopped off by the UserOut model in the /me
     # endpoint.
-    db = client.users
-    collection = db.users
-    user_dict = await collection.find_one({"_id": username})
+    with Session(engine) as session:
+        sql = select(UserORM).where(UserORM.username == username)
+        try:
+            user_dict = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
 
     # if calling through FastAPI login, just return username
     # otherwise, return hashed password so it can be verified
     if user_dict:
-        return UserDB(**user_dict)
+        return UserDB(username=user_dict.username, hashed_password=user_dict.password)
 
 
 @oauth2_scheme.user_loader
 async def get_user(username: str):
-    client = await get_odm()
-    db = client.users
-    collection = db.users
-    user_dict = await collection.find_one({"_id": username})
+    engine = await get_alchemy()
+    with Session(engine) as session:
+        sql = select(UserORM).where(UserORM.username == username)
+        try:
+            user_dict = session.execute(sql).scalar_one()
+        except NoResultFound:
+            raise HTTPException(status_code=404, detail="No data found!")
+
     if user_dict:
-        return UserOut(**user_dict)
+        return UserOut(username=user_dict.username)
