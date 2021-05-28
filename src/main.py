@@ -12,9 +12,9 @@ from dotenv import load_dotenv
 # import custom local stuff
 from src.api.users import users_api
 from src.api.index import index_api
-from src.api.autobracket import ab_api
+# from src.api.autobracket import ab_api
 from src.api.haveyouseenx import hysx_api
-from src.api.mildredleague import ml_api
+# from src.api.mildredleague import ml_api
 from src.api.security import security_api, validate_jwt
 from src.db.startup import alchemy_startup, alchemy_shutdown
 
@@ -91,8 +91,8 @@ def create_fastapi_app():
     api_app.include_router(users_api)
     api_app.include_router(index_api)
     api_app.include_router(hysx_api)
-    api_app.include_router(ab_api)
-    api_app.include_router(ml_api)
+    # api_app.include_router(ab_api)
+    # api_app.include_router(ml_api)
     api_app.include_router(security_api)
 
     return api_app

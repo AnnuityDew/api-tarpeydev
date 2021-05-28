@@ -4,23 +4,18 @@ from datetime import date
 from math import floor
 import multiprocessing
 import pathlib
-from odmantic.bson import ObjectId
-from odmantic.model import EmbeddedModel
 import orjson
 from time import perf_counter
 
 # import third party packages
 from fastapi import APIRouter, HTTPException, Depends, Path
-from motor.motor_asyncio import AsyncIOMotorClient
 import numpy as np
 import pandas as pd
-from odmantic import AIOEngine, query
 import requests
 from scipy import stats
 from sklearn.cluster import KMeans
 
 # import custom local stuff
-from src.db.motor import get_odm
 from src.api.apikey import get_api_key
 from src.db.models import (
     FantasyDataSeason,
