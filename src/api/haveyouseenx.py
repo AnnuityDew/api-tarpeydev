@@ -17,7 +17,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.sql import func
 
 # import custom local stuff
-from src.api.security import validate_jwt
+from src.api.users import oauth2_scheme
 from src.db.alchemy import get_alchemy
 from src.db.models import (
     GameStatus,
@@ -47,7 +47,7 @@ async def get_all_games(engine: Engine = Depends(get_alchemy)):
         raise HTTPException(status_code=404, detail="No data found!")
 
 
-@hysx_api.post("/annuitydew/game", dependencies=[Depends(validate_jwt)])
+@hysx_api.post("/annuitydew/game", dependencies=[Depends(oauth2_scheme)])
 async def add_games(
     row_list: List[BacklogGame],
     background_tasks: BackgroundTasks,
@@ -84,7 +84,7 @@ async def get_game(
     return result
 
 
-@hysx_api.patch("/annuitydew/game/{id}", dependencies=[Depends(validate_jwt)])
+@hysx_api.patch("/annuitydew/game/{id}", dependencies=[Depends(oauth2_scheme)])
 async def edit_game(
     id: int,
     patch: BacklogGamePatch,
@@ -114,7 +114,7 @@ async def edit_game(
     }
 
 
-@hysx_api.delete("/annuitydew/game/{id}", dependencies=[Depends(validate_jwt)])
+@hysx_api.delete("/annuitydew/game/{id}", dependencies=[Depends(oauth2_scheme)])
 async def delete_game(
     id: int,
     background_tasks: BackgroundTasks,
