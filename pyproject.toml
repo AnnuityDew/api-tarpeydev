@@ -33,6 +33,7 @@ python-dotenv = "^0.17.1"
 psycopg2-binary = "^2.8.6"
 alembic = "^1.6.4"
 python-multipart = "^0.0.5"
+bcrypt = "^3.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.1"
