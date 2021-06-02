@@ -124,6 +124,7 @@ class BacklogGameORM(Base):
 
 
 class BacklogGame(BaseModel):
+    id: Optional[int]
     game_title: str
     sub_title: Optional[str]
     game_system: str
@@ -146,6 +147,7 @@ class BacklogGame(BaseModel):
 
 
 class BacklogGamePatch(BaseModel):
+    id: Optional[int]
     game_title: Optional[str]
     sub_title: Optional[str]
     game_system: Optional[str]
