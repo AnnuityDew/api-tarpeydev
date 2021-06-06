@@ -5,10 +5,53 @@ from datetime import date
 from sqlalchemy import types
 from sqlalchemy import Column, Integer, BigInteger, String, Boolean, Date, Float, JSON
 from sqlalchemy.orm import declarative_base
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 
 # https://docs.sqlalchemy.org/en/14/tutorial/metadata.html#defining-table-metadata-with-the-orm
 Base = declarative_base()
+
+
+class ApprovedUsers(str, Enum):
+    TARPEY = "annuitydew"
+    MATT = "matt"
+    BRANDO = "branjd93"
+
+
+class UserORM(Base):
+    __tablename__ = "users"
+
+    username = Column(String, primary_key=True)
+    password = Column(String)
+
+
+class UserBase(BaseModel):
+    username: ApprovedUsers
+
+    @validator('username')
+    def username_alphanumeric(cls, name):
+        assert name.isalnum(), 'Username must be alphanumeric.'
+        return name
+
+    # necessary for parsing a SQLAlchemy ORM result
+    class Config:
+        orm_mode = True
+
+
+class UserIn(UserBase):
+    password: str
+
+    @validator('password')
+    def password_alphanumeric(cls, pw):
+        assert pw.isalnum(), 'Password must be alphanumeric.'
+        return pw
+
+
+class UserOut(UserBase):
+    pass
+
+
+class UserDB(UserBase):
+    hashed_password: str
 
 
 class QuoteORM(Base):
@@ -50,6 +93,12 @@ class GameStatus(str, Enum):
     WISH_LIST = "Wish List"
 
 
+class BacklogChartType(str, Enum):
+    TREEMAP = "treemap"
+    BUBBLES = "bubbles"
+    TIMELINE = "timeline"
+
+
 class BacklogGameORM(Base):
     __tablename__ = "backlog_games"
 
@@ -75,6 +124,7 @@ class BacklogGameORM(Base):
 
 
 class BacklogGame(BaseModel):
+    id: Optional[int]
     game_title: str
     sub_title: Optional[str]
     game_system: str
@@ -94,6 +144,41 @@ class BacklogGame(BaseModel):
     # necessary for parsing a SQLAlchemy ORM result
     class Config:
         orm_mode = True
+
+
+class BacklogGamePatch(BaseModel):
+    id: Optional[int]
+    game_title: Optional[str]
+    sub_title: Optional[str]
+    game_system: Optional[str]
+    genre: Optional[str]
+    dlc: Optional[bool]
+    now_playing: Optional[bool]
+    game_status: Optional[GameStatus]
+    game_hours: Optional[int]
+    game_minutes: Optional[int]
+    actual_playtime: Optional[bool]
+    add_date: Optional[date]
+    start_date: Optional[date]
+    beat_date: Optional[date]
+    complete_date: Optional[date]
+    game_notes: Optional[str]
+
+    # necessary for parsing a SQLAlchemy ORM result
+    class Config:
+        orm_mode = True
+
+
+class BacklogUserVisualsORM(Base):
+    __tablename__ = "backlog_user_visuals"
+
+    id = Column(String, primary_key=True)
+    treemap_json = Column(JSON)
+    bubbles_json = Column(JSON)
+    timeline_json = Column(JSON)
+
+    def __repr__(self):
+        return f"BacklogUserVisuals(id={self.id})"
 
 
 class Against(str, Enum):

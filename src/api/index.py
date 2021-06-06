@@ -11,8 +11,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import NoResultFound
 
 # import custom local stuff
-from src.db.alchemy import get_alchemy
 from src.api.security import validate_jwt
+from src.db.alchemy import get_alchemy
 from src.db.models import QuoteORM, Quote, QuotePatch
 
 
@@ -106,9 +106,10 @@ async def edit_quote(
         for attr, value in patch_dict.items():
             setattr(result, attr, value)
         session.commit()
+        session.refresh(result)
 
     return {
-        "result": patch,
+        "result": result,
     }
 
 
