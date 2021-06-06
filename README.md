@@ -63,5 +63,6 @@ API for my apps hosted at [tarpey.dev](tarpey.dev/).
   * [Connecting from Cloud Run (fully managed) to Cloud SQL](https://cloud.google.com/sql/docs/postgres/connect-run)
   * https://superuser.com/questions/458875/how-do-you-get-loopback-addresses-other-than-127-0-0-1-to-work-on-os-x
   * https://stackoverflow.com/questions/22178339/is-it-possible-to-store-the-alembic-connect-string-outside-of-alembic-ini
+* Useful Alembic commands
   * alembic revision --autogenerate -m "Describe"
   * alembic upgrade head
