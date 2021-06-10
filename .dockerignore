@@ -1,2 +1,2 @@
-# exclude the venv to speed up build time
-.venv
+# exclude the dev stuff for production
+.devcontainer
